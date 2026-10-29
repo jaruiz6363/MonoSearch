@@ -1,0 +1,3 @@
+<Project>
+  <Import Project="AberrationCalculator.Location.props" />
+</Project>

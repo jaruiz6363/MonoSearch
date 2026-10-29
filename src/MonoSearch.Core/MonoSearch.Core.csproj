@@ -5,13 +5,12 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>MonoSearch</RootNamespace>
-    <!-- The AberrationCalculator working tree; a release build passes a clean clone with -p:AberrationCalculatorDir. -->
-    <AberrationCalculatorDir Condition="'$(AberrationCalculatorDir)' == ''">C:\GIT\AberrationCalculator</AberrationCalculatorDir>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- OSLO, Optalix, Optiland and LHLT writers, on AberrationCalculator's lens model. -->
-    <ProjectReference Include="$(AberrationCalculatorDir)\src\AberrationCalculator.IO\AberrationCalculator.IO.csproj" />
+    <!-- OSLO, Optalix, Optiland and LHLT writers, on AberrationCalculator's lens model. AberrationCalculatorDir
+         comes from AberrationCalculator.Location.props at the repository root: the subtree in external/. -->
+    <ProjectReference Include="$(AberrationCalculatorDir)src/AberrationCalculator.IO/AberrationCalculator.IO.csproj" />
   </ItemGroup>
 
   <ItemGroup>
