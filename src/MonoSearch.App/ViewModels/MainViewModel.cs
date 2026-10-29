@@ -467,6 +467,19 @@ public partial class MainViewModel : ObservableObject
         ? ExportCandidates4(LastResult4!.Ranked.Take(Math.Max(0, ExportCount)).ToList())
         : ExportCandidates(LastResult!.Ranked.Take(Math.Max(0, ExportCount)).ToList());
 
+    /// <summary>A file name for the results table: ranked_&lt;tag&gt;.csv.</summary>
+    public string TableFileName => $"ranked_{(Shows4GA8 ? LastResult4?.Tag : LastResult?.Tag) ?? "results"}.csv";
+
+    /// <summary>Writes the whole results table (every ranked design, in rank order) as CSV.</summary>
+    public void SaveTableCsv(string path)
+    {
+        if (Shows4GA8 && LastResult4 is { } r4) Ga8Search.WriteCsv(r4, path);
+        else if (LastResult is { } r2) SearchEngine.WriteCsv(r2, path);
+        else return;
+        int rows = Shows4GA8 ? Results4.Count : Results.Count;
+        StatusText = $"Saved the table ({rows} designs) to {path}";
+    }
+
     public async Task<List<string>> ExportCandidates4(List<Ga8Candidate> candidates)
     {
         var r = LastResult4;

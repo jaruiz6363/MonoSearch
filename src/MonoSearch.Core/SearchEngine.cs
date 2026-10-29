@@ -133,6 +133,16 @@ public static class SearchEngine
     public static string WriteCsv(SearchResult r, string path)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        // Numbers with a '.' whatever the regional settings, so the columns stay columns.
+        var culture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        try { File.WriteAllText(path, Csv(r)); }
+        finally { CultureInfo.CurrentCulture = culture; }
+        return Path.GetFullPath(path);
+    }
+
+    private static string Csv(SearchResult r)
+    {
         var sb = new StringBuilder("rank,outer,outer_nd,outer_vd,outer_status,inner,inner_nd,inner_vd,inner_status,r1,r2,bfl,Q,dPhi2,rms_waves,C20,C40,C60,C80,image_radius,outer_cte,inner_cte,dcte\n");
         foreach (var c in r.Ranked)
         {
@@ -142,8 +152,7 @@ public static class SearchEngine
                 c.E.Q.ToString("E3"), c.E.DPhi2.ToString("F5"), c.RmsWaves.ToString("F4"), c.E.C20.ToString("F4"),
                 c.E.C40.ToString("F4"), c.E.C60.ToString("F4"), c.E.C80.ToString("F4"), c.ImageRadius.ToString("F4"), o.Cte, i.Cte, c.DeltaCte.ToString("F2")));
         }
-        File.WriteAllText(path, sb.ToString());
-        return Path.GetFullPath(path);
+        return sb.ToString();
     }
 
     /// <summary>Writes the first <paramref name="count"/> candidates in the settings' formats, one folder each; returns warnings.</summary>

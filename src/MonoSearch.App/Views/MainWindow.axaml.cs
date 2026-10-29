@@ -163,6 +163,26 @@ public partial class MainWindow : Window
         await ShowWarnings(await Vm.ExportCandidates(rows));
     }
 
+    private async void SaveTableClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null || !Vm.CanExport) return;
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Save Table as CSV",
+            DefaultExtension = "csv",
+            SuggestedFileName = Vm.TableFileName,
+            SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Vm.ResolvedOutputFolder()),
+            FileTypeChoices = new[] { new FilePickerFileType("CSV (comma separated)") { Patterns = new[] { "*.csv" } }, AllFiles },
+        });
+        if (file is null) return;
+        string path = file.Path.LocalPath;
+        try { Vm.SaveTableCsv(path); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            await Message("Save failed", $"{path} could not be written:\n\n{ex.Message}\n\nIs it open in Excel?", MsgIcon.Error);
+        }
+    }
+
     private Task NothingSelected() =>
         Message("Export selected", "Select one or more designs in the table first (Ctrl or Shift to select several).", MsgIcon.Info);
 

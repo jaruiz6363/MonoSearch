@@ -26,6 +26,7 @@
                 <Separator/>
                 <MenuItem Header="_Export Top N" Click="ExportTopClick" IsEnabled="{Binding CanExport}"/>
                 <MenuItem Header="Export _Selected" Click="ExportSelectedClick" IsEnabled="{Binding CanExport}"/>
+                <MenuItem Header="Save _Table as CSV..." Click="SaveTableClick" IsEnabled="{Binding CanExport}"/>
                 <MenuItem Header="_Open Output Folder" Click="OpenFolderClick"/>
             </MenuItem>
             <MenuItem Header="_Help">
@@ -167,6 +168,8 @@
                             ToolTip.Tip="Stop the search and keep what it has found: the combinations screened so far are refined and ranked (a few seconds), and the table shows them."/>
                     <Button Content="Export Top N" Click="ExportTopClick" IsEnabled="{Binding CanExport}"/>
                     <Button Content="Export Selected" Click="ExportSelectedClick" IsEnabled="{Binding CanExport}"/>
+                    <Button Content="Save Table as CSV..." Click="SaveTableClick" IsEnabled="{Binding CanExport}"
+                            ToolTip.Tip="Every ranked design in the table, in rank order, as a CSV file (opens in Excel)."/>
                     <Button Content="Open Output Folder" Click="OpenFolderClick"/>
                     <Button Content="Use Cores for 4GA-8" Click="UseCoresClick" IsEnabled="{Binding CanUseCores}"
                             IsVisible="{Binding !Shows4GA8}"

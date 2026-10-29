@@ -31,7 +31,8 @@ line runs in a background terminal. Below the table the selected design is drawn
 wavelength, 7 rays per field filling the stop at the centre (as OpticStudio's real ray aiming), each surface as wide
 as its rays need, the stop, and the concentric image; the half field of view can be changed without a new run.
 Export Top N writes the ranked CSV and the top N designs; Export Selected writes the
-rows selected in the table (Ctrl/Shift for several). A relative output folder is taken from the settings file's
+rows selected in the table (Ctrl/Shift for several). Save Table as CSV (button and Search menu) writes the whole table, every ranked
+design in rank order, to a file you choose; numbers always use a decimal point, whatever the regional settings. A relative output folder is taken from the settings file's
 folder, or Documents\MonoSearch before the settings are saved. A .monosearch file passed on the command line
 opens at start.
 
