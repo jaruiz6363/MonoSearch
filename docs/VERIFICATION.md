@@ -152,6 +152,7 @@ requires every combination to start.
 | ZMX after the move to AberrationCalculator's writer | Old and new files of 2GS ranks 1–3 and 4GA-8 rank 1 opened in OpticStudio (0.2.3) | Same radii, thicknesses, glasses, catalogs, aperture, fields and wavelengths. EFL identical: 11.99663, 11.99692, 11.99706 and 12.00552 mm. Rank 2 (HOYA M-TAFD405, an alias case) gave the same MTF curves at every field, 0–200 lp/mm. |
 | Optiland `.json` | Ranks 1 and 3 loaded in Optiland 0.6 | EFL 11.9966 / 11.9971 mm, as in OpticStudio; per-wavelength RMS wavefront within about 0.007 waves of OpticStudio's |
 | OSLO `.len`, Optalix `.otx`, LensHH-LT `.lhlt` | Read back with AberrationCalculator's readers (`MonoSearch.exe readback`) | Same prescription and EFL as the ZMX and Optiland files |
+| OSLO `.len` in OSLO EDU | 2GS rank 1, opened by the author (0.2.3) | The first file failed to load: OSLO allows at most 80 characters per system note and this note had 140 ("Error at sno_: system note: Argument can not contain more than 80 chars"). Fixed in AberrationCalculator's OSLO writer (49c5b7e: notes wrapped at words, notes 1–9 only). OSLO's paraxial setup then gave EFL 11.99657 mm (OpticStudio 11.99663), entrance beam radius 3.50877 mm, field angle 60°, and 2.91906 mm from the last surface to the image, as written. Its Gaussian image distance, 2.93121 mm, is the paraxial focus; the file places the image at the polychromatic best focus. |
 | Code V `.seq` | Read back with AberrationCalculator's Code V reader (`MonoSearch.exe readback`): 2GS ranks 1–3 and 4GA-8 rank 1 (0.2.3) | Same radii, thicknesses and glasses as the other five files, and the same EFL: 11.99663, 11.99692, 11.99706 and 12.00552 mm. Glasses written as `NAME_CATALOG` (`MTAFD405_HOYA`) read back as the right vendor's glass. |
 | LensHH-LT `.lhlt` | A few exported files opened in LensHH-LT by the author: the 4GA-8 exports for f = 12 mm, F/1.71, core K-LaSFn9, ranks 1–10 | What was looked at matched OpticStudio. One of them is measured in the next section. |
 
@@ -207,7 +208,8 @@ GUI has not been run yet.
 
 ## Not yet checked
 
-- The Code V, OSLO and Optalix files have not been opened in Code V, OSLO or Optalix themselves.
+- The Code V and Optalix files have not been opened in Code V or Optalix themselves. In OSLO only the 2GS rank 1
+  paraxial data has been checked; no image-quality analysis yet.
 - The OSLO `.len` file carries only the full field angle, so `readback` reports two fields for it (on axis and
   full) where the other formats report three. Every `.len` file on hand does the same, including ones written
   by Optalix and LensHH-LT. Whether a `.len` file can carry OSLO's field points set has not been established;
