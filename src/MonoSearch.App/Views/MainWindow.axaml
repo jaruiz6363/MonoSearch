@@ -100,6 +100,23 @@
                         <TextBox Grid.Column="1" Text="{Binding MaxCteDifference}" IsEnabled="{Binding LimitCte}"/>
                     </Grid>
 
+                    <TextBlock Classes="group" Text="Architecture"/>
+                    <ComboBox HorizontalAlignment="Stretch" ItemsSource="{x:Static vm:MainViewModel.ArchitectureNames}"
+                              SelectedIndex="{Binding ArchitectureIndex}"/>
+                    <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto" Margin="0,4,0,0" IsVisible="{Binding Is4GA8}">
+                        <TextBlock Classes="label" Text="Core glasses"/>
+                        <TextBox Grid.Column="1" Text="{Binding CoreGlassesText}" Watermark="from a 2GS search"
+                                 ToolTip.Tip="Ball glasses as CATALOG:NAME, comma separated (e.g. SUMITA:K-GFK68). Empty: the best ball glasses of a 2GS search with these settings, as the paper seeds its search. Or select 2GS results and press Use cores for 4GA-8."/>
+                        <TextBlock Classes="label" Grid.Row="1" Text="Cores from 2GS (if empty)"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CoreCount}"/>
+                        <TextBlock Classes="label" Grid.Row="2" Text="Glass grouping"/>
+                        <ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"
+                                  ItemsSource="{x:Static vm:MainViewModel.GroupingNames}" SelectedIndex="{Binding GroupingIndex}"
+                                  ToolTip.Tip="Near-identical glasses (nd, Vd and PgF within 0.005/0.5/0.002 fine, 0.01/1/0.003 normal, 0.02/1.5/0.005 coarse) are searched as one; the others of a group are tried on the best designs afterwards. With 9 wavelengths one core takes about 4 min coarse, 15 min normal, an hour fine on 16 threads; fewer wavelengths are faster."/>
+                    </Grid>
+                    <TextBlock IsVisible="{Binding Is4GA8}" TextWrapping="Wrap" FontSize="11" Foreground="#666666" Margin="0,4,0,0"
+                               Text="With a CTE limit, the front and rear shells must match the core (both are cemented to it); the meniscus is air-spaced."/>
+
                     <TextBlock Classes="group" Text="Search"/>
                     <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto,Auto">
                         <TextBlock Classes="label" Text="r1 from"/>
@@ -150,11 +167,37 @@
                     <Button Content="Export Top N" Click="ExportTopClick" IsEnabled="{Binding CanExport}"/>
                     <Button Content="Export Selected" Click="ExportSelectedClick" IsEnabled="{Binding CanExport}"/>
                     <Button Content="Open Output Folder" Click="OpenFolderClick"/>
+                    <Button Content="Use Cores for 4GA-8" Click="UseCoresClick" IsEnabled="{Binding CanUseCores}"
+                            IsVisible="{Binding !Shows4GA8}"
+                            ToolTip.Tip="Set up a 4GA-8 search with the ball glasses of the selected 2GS designs as the core."/>
                 </StackPanel>
                 <TextBlock DockPanel.Dock="Top" Text="{Binding SummaryText}" Margin="0,8,0,6" FontSize="12"
                            TextWrapping="Wrap" Foreground="#444444"/>
                 <Grid RowDefinitions="*,5,1.2*">
+                <DataGrid x:Name="Results4Grid" ItemsSource="{Binding Results4}" SelectedItem="{Binding SelectedResult4}"
+                          AutoGenerateColumns="False" IsVisible="{Binding Shows4GA8}"
+                          IsReadOnly="True" SelectionMode="Extended" CanUserSortColumns="True" CanUserResizeColumns="True"
+                          GridLinesVisibility="Horizontal" BorderThickness="1" BorderBrush="#CCCCCC">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="#" Binding="{Binding Rank}" Width="50"/>
+                        <DataGridTextColumn Header="Fam" Binding="{Binding Family}" Width="50"/>
+                        <DataGridTextColumn Header="Front shell" Binding="{Binding Front}" Width="*"/>
+                        <DataGridTextColumn Header="Core" Binding="{Binding Core}" Width="*"/>
+                        <DataGridTextColumn Header="Rear shell" Binding="{Binding Rear}" Width="*"/>
+                        <DataGridTextColumn Header="Meniscus" Binding="{Binding Meniscus}" Width="*"/>
+                        <DataGridTextColumn Header="R1" Binding="{Binding R1, StringFormat=\{0:F3\}}" Width="62"/>
+                        <DataGridTextColumn Header="R2" Binding="{Binding R2, StringFormat=\{0:F3\}}" Width="62"/>
+                        <DataGridTextColumn Header="R4" Binding="{Binding R4, StringFormat=\{0:F3\}}" Width="62"/>
+                        <DataGridTextColumn Header="R5" Binding="{Binding R5, StringFormat=\{0:F3\}}" Width="62"/>
+                        <DataGridTextColumn Header="R6" Binding="{Binding R6, StringFormat=\{0:F3\}}" Width="62"/>
+                        <DataGridTextColumn Header="BFL" Binding="{Binding BackFocus, StringFormat=\{0:F2\}}" Width="58"/>
+                        <DataGridTextColumn Header="C" Binding="{Binding C, StringFormat=\{0:F5\}}" Width="75"/>
+                        <DataGridTextColumn Header="RMS (waves)" Binding="{Binding Rms, StringFormat=\{0:F4\}}" Width="95"/>
+                        <DataGridTextColumn Header="dCTE" Binding="{Binding DeltaCte, StringFormat=\{0:F1\}}" Width="58"/>
+                    </DataGrid.Columns>
+                </DataGrid>
                 <DataGrid x:Name="ResultsGrid" ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResult}" AutoGenerateColumns="False"
+                          IsVisible="{Binding !Shows4GA8}"
                           IsReadOnly="True" SelectionMode="Extended" CanUserSortColumns="True" CanUserResizeColumns="True"
                           GridLinesVisibility="Horizontal" BorderThickness="1" BorderBrush="#CCCCCC">
                     <DataGrid.Columns>

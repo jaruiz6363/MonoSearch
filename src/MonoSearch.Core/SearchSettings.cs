@@ -55,6 +55,18 @@ public sealed class SearchSettings
     /// <summary>"poly" (weighted least-squares focus) or "eq36" (the paper's literal refocus).</summary>
     public string Focus { get; set; } = "poly";
 
+    /// <summary>"2GS" (two-glass symmetric, 2012 paper) or "4GA-8" (four-glass asymmetric with an air gap, 2013 paper).</summary>
+    public string Architecture { get; set; } = "2GS";
+
+    /// <summary>4GA-8: core (ball) glasses as CATALOG:NAME. Empty = the first <see cref="CoreCount"/> distinct ball
+    /// glasses of a 2GS search with the same settings, as the paper seeds its search from the best 2GS cores.</summary>
+    public List<string> CoreGlasses { get; set; } = new();
+    public int CoreCount { get; set; } = 1;
+
+    /// <summary>4GA-8: how closely glasses must match to be searched as one ("fine", "normal", "coarse"); the others
+    /// in a group are tried on the best designs afterwards, as the paper's replacement glasses.</summary>
+    public string GlassGrouping { get; set; } = "normal";
+
     public int ScanPoints { get; set; } = 400;
     public int KeepTop { get; set; } = 200;
 
@@ -101,6 +113,9 @@ public sealed class SearchSettings
         if (DesignWavelength is { } dw && !(dw > 0)) throw new ArgumentException("Design wavelength must be positive.");
         if (Mode is not ("paper" or "direct")) throw new ArgumentException("Mode must be paper or direct.");
         if (Focus is not ("poly" or "eq36")) throw new ArgumentException("Focus must be poly or eq36.");
+        if (Architecture is not ("2GS" or "4GA-8")) throw new ArgumentException("Architecture must be 2GS or 4GA-8.");
+        if (GlassGrouping is not ("fine" or "normal" or "coarse")) throw new ArgumentException("Glass grouping must be fine, normal or coarse.");
+        if (Architecture == "4GA-8" && CoreGlasses.Count == 0 && CoreCount < 1) throw new ArgumentException("Give core glasses or a core count of at least 1.");
         if (ScanPoints < 20) throw new ArgumentException("Scan points must be at least 20.");
         if (Catalogs.Count == 0) throw new ArgumentException("Choose at least one glass catalog.");
 

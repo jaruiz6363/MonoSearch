@@ -31,6 +31,10 @@ rows selected in the table (Ctrl/Shift for several). A relative output folder is
 folder, or Documents\MonoSearch before the settings are saved. A .monosearch file passed on the command line
 opens at start.
 
+Architecture chooses 2GS or 4GA-8 (see below). For 4GA-8, type the core glasses or select 2GS results and press
+Use Cores for 4GA-8; the results table then lists the four glasses, family and five radii, and the drawing shows
+the four elements.
+
 The command line runs the same files: `MonoSearch.exe search --settings my.monosearch` (any option given as well
 overrides the file), and `MonoSearch.exe save-settings --file my.monosearch --f 70 --fno 3.5` writes one.
 
@@ -81,6 +85,73 @@ Options: `--catalogs SCHOTT,OHARA,HOYA,SUMITA,CDGM,MISC` (default: all bundled),
 - `--focus poly` (default): least-squares focus over all wavelengths. `--focus eq36`: the paper's literal Eq. 36
   (zero C20 at the centre wavelength), which gives about twice the paper's published (dPhi)^2 values.
 - Glasses are identified by CATALOG:NAME. Vendors reuse names (SUMITA LASFN9 is not SCHOTT LASFN9).
+
+## Four-glass asymmetric lens with an air gap (4GA-8)
+
+After Stamenov, Agurok and Ford, "Optimization of high-performance monocentric lenses", Appl. Opt. 52, 8287 (2013).
+That paper finds that breaking the symmetry of a two-glass lens, or adding an air gap to it, converges back to the
+symmetric design in air. The gain comes with more glasses plus asymmetry and an air gap. Its 4GA-8 (Fig. 9) is a front
+shell (glass 1) cemented to a core ball (glass 2, stop at the centre), a rear shell (glass 3) cemented to the back of
+the core, an air gap, and a rear meniscus (glass 4): five radii R1, R2, R4, R5, R6.
+
+```
+MonoSearch.exe search --arch 4GA-8 --core SUMITA:K-GFK68 --lambda 0.4,0.475,0.55,0.625,0.7,0.775,0.85,0.925,1.0 --fno 1.7
+MonoSearch.exe search --arch 4GA-8 --cores 2 --grouping coarse      (cores from a 2GS search)
+```
+
+In the GUI: Architecture = 4GA-8, then either type the core glasses or select 2GS results and press Use Cores for 4GA-8.
+
+How it searches, as the paper's section 3.D: the core comes from the best 2GS designs; every glass is tried in the front
+shell, the rear shell and the meniscus; for each combination the radii minimise the paper's criterion C (Eq. 11),
+lateral-aberration terms p_i dS(h_i, lambda_j)/lambda_j at nine pupil zones and every wavelength plus the longitudinal
+colour between the band's ends at zones 1, 0.88 and 0.05, with dS measured from f (so C also holds the focal length).
+Wavelength weights multiply the first sum; with equal weights C is the paper's.
+
+- The trace is the exact concentric one (the paper's Eq. 7, written for any number of shells); the radii are found by
+  Levenberg-Marquardt with analytic derivatives, in variables that keep R2 < R1, R2 < R4 < R5 < R6 with at least
+  0.03 f of glass and 0.01 f of air.
+- Starting radii: the paper's M0 = (7.0, 2.9, 4.2, 4.5, 7.8) mm scaled to f (and R1 = 6.5, 7.5). M0 suits its
+  K-GFK68 core (n 1.59); with a denser core it focuses inside the lens. Then each element-thickness profile (the
+  paper's, and three thinner ones) is tried with the core radius solved so the paraxial focal length is f
+  (1/f = sum of +-(1/n_before - 1/n_after)/R). A combination none of these starts is counted and reported.
+- Screen: every combination of representative glasses (glasses within nd/Vd/PgF tolerances grouped: fine
+  0.005/0.5/0.002, normal 0.01/1/0.003, coarse 0.02/1.5/0.005), 15 iterations from the first valid starting point,
+  a combination given up after 5 iterations if still 3x worse than the 400th best. Refine: the 400 best to convergence from three starting points (R1 = 6.5, 7.0, 7.5 mm at f = 12).
+  Expand: the 40 best families with every member of their glass groups (the paper's replacement glasses).
+- Ranked by C. Each design also gets the refocused wavefront (13 zones, C20..C100) for the RMS column, its image at
+  best focus, and the back-focus check. The best 2GS design with the same core is reported on the same measure.
+- CTE limit: the front and rear shells must match the core (both cemented); the meniscus is air-spaced and free.
+- Exports, drawing and CSV as for 2GS (8 surfaces).
+
+Cost: about 4 min per core with coarse grouping and 15 min with normal, with 9 wavelengths on 16 threads; fewer
+wavelengths are proportionally faster.
+
+### Validation (the paper's 12 mm, 400-1000 nm, 9 wavelengths, core K-GFK68)
+
+- The generic concentric trace reproduces the 2GS trace to 5e-15 mm and its (dPhi)^2 exactly.
+- Local minima: for the paper's seven families and our two best, the three starting points reach the same C as 300
+  random starts, so the search finds each combination's optimum.
+- Aperture convention: the paper's C values (Table 6) are reproduced within 1-12% when its F/1.7 is taken as
+  NA = sin(atan(1/(2 F/#))), i.e. an entrance pupil of 6.78 mm, F/1.77 in the usual sense; with NA = 1/(2 F/#) they come
+  out 15-55% higher. MonoSearch keeps the usual definition (entrance pupil = f / F/#, OpticStudio's image-space F/#),
+  so enter F/1.77 to reproduce the paper. The same convention moves the 2012 lens's r1 from 9.065 to 9.055 (paper 9.049).
+  In that convention family I (P-LASF50 / K-GFK68 / TAF1 / E-ADF10) is the best of the nine, as in the paper
+  (C 0.00321 against its 0.003253).
+- Not reproduced: C at the paper's radii M0..M5 (ours 1.3x to 6x higher); the valley the paper describes is long and
+  narrow, so today's glass data move its bottom (our optimum for the Table 3 glasses is C 0.00427 at R1 6.59, R6 8.71,
+  along the paper's eigenvector E1 from its M5).
+- OpticStudio, the exported Table 3 glasses at our optimum (F/1.7 usual sense): EFL 12.036 (paraxial, 0.7 um); on-axis
+  RMS wavefront 0.112 / 0.139 / 0.062 / 0.084 waves at 0.4 / 0.475 / 0.7 / 1.0 um against ours 0.099 / 0.137 / 0.057 /
+  0.081 (2-11%; the wavefront from longitudinal aberration is an approximation at this aperture); MTF at 200 lp/mm
+  0.485 on axis, 0.47 at 30 deg, 0.35 T / 0.40 S at 60 deg (diffraction limit 0.70).
+- Versus 2GS: the best 4GA-8 has RMS 0.085-0.094 waves against 0.160 for the best 2GS with the same core.
+- Full search (normal grouping, 23.9 million combinations, 15.7 min) in the paper's convention (F/1.769): the best
+  C is 0.00308, below the paper's family I under the same model (0.00321); 105 designs from about 20 families
+  score below it. Margins are about 4%, within what catalog differences can move; the paper's own optimiser could
+  stall in the valleys it describes, ours reaches the multi-start optimum. OpticStudio is the arbiter between them.
+- 12 mm F/1.71, 470/550/650 nm, core K-LaSFn9 (the 2012 lens): the best 4GA-8 (LASF35 / K-LaSFn9 / TAFD30 /
+  S-LAH79) has RMS 0.0634 waves against 0.0643 for 2GS, a slight improvement only, as the paper's Fig. 8(a) shows
+  for this specification; 4GA-8 pays off with wider bands, faster apertures or longer focal lengths.
 
 ## Catalogs
 

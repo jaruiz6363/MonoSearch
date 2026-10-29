@@ -151,13 +151,31 @@ public partial class MainWindow : Window
     private async void ExportSelectedClick(object? sender, RoutedEventArgs e)
     {
         if (Vm is null || !Vm.CanExport) return;
+        if (Vm.Shows4GA8)
+        {
+            var rows4 = Results4Grid.SelectedItems.OfType<Ga8Row>().Select(r => r.Candidate).OrderBy(c => c.Rank).ToList();
+            if (rows4.Count == 0) { await NothingSelected(); return; }
+            await ShowWarnings(await Vm.ExportCandidates4(rows4));
+            return;
+        }
+        var rows = ResultsGrid.SelectedItems.OfType<ResultRow>().Select(r => r.Candidate).OrderBy(c => c.Rank).ToList();
+        if (rows.Count == 0) { await NothingSelected(); return; }
+        await ShowWarnings(await Vm.ExportCandidates(rows));
+    }
+
+    private Task NothingSelected() =>
+        Message("Export selected", "Select one or more designs in the table first (Ctrl or Shift to select several).", MsgIcon.Info);
+
+    private async void UseCoresClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
         var rows = ResultsGrid.SelectedItems.OfType<ResultRow>().Select(r => r.Candidate).OrderBy(c => c.Rank).ToList();
         if (rows.Count == 0)
         {
-            await Message("Export selected", "Select one or more designs in the table first (Ctrl or Shift to select several).", MsgIcon.Info);
+            await Message("Use cores for 4GA-8", "Select one or more 2GS designs first; their ball glasses become the 4GA-8 cores.", MsgIcon.Info);
             return;
         }
-        await ShowWarnings(await Vm.ExportCandidates(rows));
+        Vm.UseCores(rows);
     }
 
     private async Task ShowWarnings(List<string> warnings)

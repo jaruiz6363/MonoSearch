@@ -20,8 +20,15 @@ public sealed class LensView : Control
     static LensView() => AffectsRender<LensView>(LayoutProperty);
 
     private static readonly IBrush Background = Brushes.White;
-    private static readonly IBrush ShellFill = new SolidColorBrush(Color.Parse("#D6E8F7"));
-    private static readonly IBrush BallFill = new SolidColorBrush(Color.Parse("#A8CBEA"));
+    // One fill per distinct glass, in the order the glasses first appear (front to back).
+    private static readonly IBrush[] Fills =
+    {
+        new SolidColorBrush(Color.Parse("#D6E8F7")),
+        new SolidColorBrush(Color.Parse("#A8CBEA")),
+        new SolidColorBrush(Color.Parse("#CFE6C8")),
+        new SolidColorBrush(Color.Parse("#F3DFB8")),
+        new SolidColorBrush(Color.Parse("#E5D0EC")),
+    };
     private static readonly Pen GlassPen = new(new SolidColorBrush(Color.Parse("#2F4F7A")), 1.2);
     private static readonly Pen StopPen = new(Brushes.Black, 3);
     private static readonly Pen ImagePen = new(new SolidColorBrush(Color.Parse("#333333")), 2.5);
@@ -47,8 +54,9 @@ public sealed class LensView : Control
         }
 
         // Fit everything drawn into the control, same scale on both axes.
-        var all = L.Rays.SelectMany(r => r.Points).ToList();
-        all.Add(new Pt(-L.R1, L.R1)); all.Add(new Pt(-L.R1, -L.R1)); all.Add(new Pt(L.R1, L.R1)); all.Add(new Pt(L.R1, -L.R1));
+        var surf = L.Lens.Surfaces;
+        var outlines = L.Regions.Select(r => (r.Glass, Points: Outline(L, r).ToList())).ToList();
+        var all = L.Rays.SelectMany(r => r.Points).Concat(outlines.SelectMany(o => o.Points)).ToList();
         all.AddRange(Arc(L.ImageRadius, 0, L.ImageAngle, 8));
         double zMin = all.Min(p => p.Z), zMax = all.Max(p => p.Z), yMin = all.Min(p => p.Y), yMax = all.Max(p => p.Y);
         const double pad = 18;
@@ -60,34 +68,21 @@ public sealed class LensView : Control
 
         ctx.DrawLine(AxisPen, P(new Pt(zMin, 0)), P(new Pt(zMax, 0)));
 
-        // Shells: menisci about the front and rear vertices, each surface as wide as its rays need and the two
-        // joined by a straight edge; or one complete spherical shell.
-        if (L.FullShell)
+        // Glass: one fill per distinct glass, each element as wide as its rays need.
+        var glasses = L.Regions.Select(r => r.Glass).Distinct().ToList();
+        foreach (var (g, pts) in outlines)
+            ctx.DrawGeometry(Fills[glasses.IndexOf(g) % Fills.Length], GlassPen, Poly(pts.Select(P), true));
+
+        // Stop: an opaque disc in the plane at the centre, open within the stop semi-diameter, out to the glass around it.
+        int stop = surf.FindIndex(s => s.Stop);
+        if (stop > 0)
         {
-            ctx.DrawGeometry(ShellFill, GlassPen, Poly(Arc(L.R1, 0, Math.PI, 180).Select(P), true));
-            ctx.DrawGeometry(Background, null, Poly(Arc(L.R2, 0, Math.PI, 180).Select(P), true));
-        }
-        else
-        {
-            foreach (double axis in new[] { Math.PI, 0.0 })
+            double rim = Math.Abs(surf[stop - 1].Radius) * Math.Sin(L.Angle[stop - 1]);
+            if (rim > L.StopSemi)
             {
-                var outline = Arc(L.R1, axis, L.ShellAngle, 90).Concat(Arc(L.R2, axis, L.BallAngle, 90).Reverse());
-                ctx.DrawGeometry(ShellFill, GlassPen, Poly(outline.Select(P), true));
+                ctx.DrawLine(StopPen, P(new Pt(0, L.StopSemi)), P(new Pt(0, rim)));
+                ctx.DrawLine(StopPen, P(new Pt(0, -L.StopSemi)), P(new Pt(0, -rim)));
             }
-        }
-
-        // Ball: a complete sphere, or front and rear caps joined by a cylindrical edge.
-        var ball = L.FullBall
-            ? Arc(L.R2, 0, Math.PI, 180)
-            : Arc(L.R2, Math.PI, L.BallAngle, 90).Concat(Arc(L.R2, 0, L.BallAngle, 90));
-        ctx.DrawGeometry(BallFill, GlassPen, Poly(ball.Select(P), true));
-
-        // Stop: an opaque disc in the cemented plane at the centre, open within the stop semi-diameter.
-        double rim = L.FullBall ? L.R2 : L.R2 * Math.Sin(L.BallAngle);
-        if (rim > L.StopSemi)
-        {
-            ctx.DrawLine(StopPen, P(new Pt(0, L.StopSemi)), P(new Pt(0, rim)));
-            ctx.DrawLine(StopPen, P(new Pt(0, -L.StopSemi)), P(new Pt(0, -rim)));
         }
 
         foreach (var ray in L.Rays)
@@ -111,6 +106,18 @@ public sealed class LensView : Control
             ctx.DrawText(ft, new Point(x, b.Height - pad - 9));
             x -= 12;
         }
+    }
+
+    /// <summary>Outline of the glass between two spheres: both in front of the stop (a cap about -z), both behind it
+    /// (a cap about +z), or one on each side (the core: front and rear caps joined by a cylindrical edge, a full circle
+    /// when both reach the equator). Each sphere is as wide as its rays need; the edges are straight.</summary>
+    private static IEnumerable<Pt> Outline(LensLayout L, GlassRegion r)
+    {
+        var s = L.Lens.Surfaces;
+        double ra = s[r.First].Radius, rb = s[r.Second].Radius, aa = L.Angle[r.First], ab = L.Angle[r.Second];
+        if (ra > 0 && rb > 0) return Arc(ra, Math.PI, aa, 90).Concat(Arc(rb, Math.PI, ab, 90).Reverse());
+        if (ra < 0 && rb < 0) return Arc(-ra, 0, aa, 90).Concat(Arc(-rb, 0, ab, 90).Reverse());
+        return Arc(Math.Abs(ra), Math.PI, aa, 90).Concat(Arc(Math.Abs(rb), 0, ab, 90));
     }
 
     /// <summary>Points of a circle of radius r centred on the origin, within half-angle a of the direction

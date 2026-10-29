@@ -57,6 +57,22 @@ public static class SearchEngine
         return AgfReader.CollapseAliases(glasses);
     }
 
+    /// <summary>The glasses a search may use: not obsolete (unless asked), defined over the band and at the design
+    /// wavelength, with a formula that reproduces the catalog's own nd. With a CTE limit, glasses without a CTE are left
+    /// out too (the limit applies to cemented interfaces and cannot be checked for them); <paramref name="noCte"/> counts them.</summary>
+    public static Glass[] Usable(SearchSettings settings, Spec sp, List<Glass> all, out int noCte)
+    {
+        double lmin = Math.Min(sp.Lambda.Min(), sp.DesignLambda), lmax = Math.Max(sp.Lambda.Max(), sp.DesignLambda);
+        var usable = all.Where(g =>
+                (settings.IncludeObsolete || g.Status != 2)
+                && g.LambdaMin <= lmin + 1e-6 && g.LambdaMax >= lmax - 1e-6
+                && (g.Nd <= 1.0 || Math.Abs(g.Index(0.5875618) - g.Nd) < 1e-3)   // formula must agree with its own nd
+                && sp.Lambda.All(l => double.IsFinite(g.Index(l)) && g.Index(l) > 1))
+            .ToArray();
+        noCte = settings.MaxCteDifference is null ? 0 : usable.Count(g => double.IsNaN(g.Cte));
+        return settings.MaxCteDifference is null ? usable : usable.Where(g => !double.IsNaN(g.Cte)).ToArray();
+    }
+
     /// <summary>Runs the search. Progress reports the fraction of outer glasses done, 0..1.</summary>
     public static SearchResult Run(SearchSettings settings, string catDir, IProgress<double>? progress = null,
         CancellationToken cancel = default)
@@ -64,18 +80,8 @@ public static class SearchEngine
         var sp = settings.ToSpec();
         var all = LoadCatalogs(catDir, settings.Catalogs);
         bool byQ = settings.Mode != "direct";
-        double lmin = Math.Min(sp.Lambda.Min(), sp.DesignLambda), lmax = Math.Max(sp.Lambda.Max(), sp.DesignLambda);
-
-        var usable = all.Where(g =>
-                (settings.IncludeObsolete || g.Status != 2)
-                && g.LambdaMin <= lmin + 1e-6 && g.LambdaMax >= lmax - 1e-6
-                && (g.Nd <= 1.0 || Math.Abs(g.Index(0.5875618) - g.Nd) < 1e-3)   // formula must agree with its own nd
-                && sp.Lambda.All(l => double.IsFinite(g.Index(l)) && g.Index(l) > 1))
-            .ToArray();
-        // The CTE limit applies to the cemented shell/ball interface; a glass without a CTE cannot be checked.
+        var usable = Usable(settings, sp, all, out int noCte);
         double? maxDcte = settings.MaxCteDifference;
-        int noCte = maxDcte is null ? 0 : usable.Count(g => double.IsNaN(g.Cte));
-        if (maxDcte is not null) usable = usable.Where(g => !double.IsNaN(g.Cte)).ToArray();
         var cte = usable.Select(g => g.Cte).ToArray();
         // Indices once, before the parallel loop; the loop only reads these arrays.
         var n = usable.Select(g => sp.Lambda.Select(g.Index).ToArray()).ToArray();
@@ -144,8 +150,8 @@ public static class SearchEngine
         foreach (var c in candidates)
         {
             string name = $"rank{c.Rank:D3}_{Safe(c.Outer.Name)}_{Safe(c.Inner.Name)}";
-            foreach (var w in Exporters.Write(Path.Combine(outDir, name), $"{r.Tag}_{name}", fmts, r.Spec, c.Outer, c.Inner,
-                         c.E, c.Rank, zc, acGlass, optilandInstall))
+            foreach (var w in Exporters.Write(Path.Combine(outDir, name), $"{r.Tag}_{name}", fmts, MonoLens.From(c),
+                         zc, acGlass, optilandInstall))
                 warnings.Add($"rank {c.Rank}: {w}");
         }
         return warnings;

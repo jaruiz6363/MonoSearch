@@ -6,7 +6,7 @@ using AcGlassCatalog = AberrationCalculator.Core.Glass.GlassCatalog;
 namespace MonoSearch;
 
 /// <summary>
-/// Writes one candidate in several lens formats. ZMX uses MonoSearch's own writer, checked in OpticStudio;
+/// Writes one design in several lens formats. ZMX uses MonoSearch's own writer, checked in OpticStudio;
 /// OSLO, Optalix, Optiland and LHLT use AberrationCalculator.IO's writers on an AberrationCalculator lens model.
 /// </summary>
 public static class Exporters
@@ -14,12 +14,12 @@ public static class Exporters
     public static readonly string[] AllFormats = { "zmx", "len", "otx", "json", "lhlt" };
 
     /// <summary>Writes the requested formats into <paramref name="folder"/>; returns warnings.</summary>
-    public static List<string> Write(string folder, string baseName, IEnumerable<string> formats, Spec sp,
-        Glass outer, Glass inner, Eval e, int rank, ZemaxCatalogs? zc, AcGlassCatalog acGlass, bool optilandInstall)
+    public static List<string> Write(string folder, string baseName, IEnumerable<string> formats, MonoLens lens,
+        ZemaxCatalogs? zc, AcGlassCatalog acGlass, bool optilandInstall)
     {
         Directory.CreateDirectory(folder);
         var warnings = new List<string>();
-        var system = Build(sp, outer, inner, e, rank, acGlass, warnings);
+        var system = Build(lens, acGlass, warnings);
 
         foreach (var fmt in formats.Select(f => f.Trim().ToLowerInvariant()).Distinct())
         {
@@ -29,7 +29,7 @@ public static class Exporters
                 switch (fmt)
                 {
                     case "zmx":
-                        warnings.AddRange(ZmxWriter.Write(path, sp, outer, inner, e, rank, zc));
+                        warnings.AddRange(ZmxWriter.Write(path, lens, zc));
                         break;
                     case "len":
                         OsloWriter.Write(system, path, acGlass);
@@ -57,17 +57,15 @@ public static class Exporters
         return warnings;
     }
 
-    /// <summary>The candidate as an AberrationCalculator lens: object at infinity, shell, ball, stop at the centre,
-    /// ball, shell, concentric image at the refocused distance; fields on axis, half and full field; real-ray aiming.</summary>
-    public static OpticalSystem Build(Spec sp, Glass outer, Glass inner, Eval e, int rank, AcGlassCatalog acGlass,
-        List<string> warnings)
+    /// <summary>The lens as an AberrationCalculator system: object at infinity, the lens's surfaces with the stop at
+    /// the centre, the concentric image; fields on axis, half and full field; real-ray aiming.</summary>
+    public static OpticalSystem Build(MonoLens lens, AcGlassCatalog acGlass, List<string> warnings)
     {
-        double r1 = e.R1, r2 = e.R2, sImg = sp.F - e.DS;
+        var sp = lens.Spec;
         var sys = new OpticalSystem
         {
-            Title = $"Monocentric rank {rank}: {outer.Name} / {inner.Name}, f={sp.F}, F/{sp.FNumber}",
-            Notes = $"MonoSearch (Stamenov, Agurok, Ford, Appl. Opt. 51, 7648 (2012)). Outer {outer.Id}, inner {inner.Id}. "
-                    + $"dPhi2 = {e.DPhi2:F5}.",
+            Title = lens.Title,
+            Notes = lens.Note,
             Aperture = new Aperture(ApertureType.EPD, 2 * sp.H1),
             FieldType = FieldType.ObjectAngle,
             RayAiming = RayAimingMode.Real,
@@ -78,7 +76,7 @@ public static class Exporters
 
         // Bare glass names are resolved through this list in order, so order it so each glass finds its own
         // vendor's entry (SUMITA's LASFN9 is not SCHOTT's).
-        sys.GlassCatalogs.AddRange(CatalogOrder(outer, inner, acGlass, warnings));
+        sys.GlassCatalogs.AddRange(CatalogOrder(lens.Glasses, acGlass, warnings));
 
         void Add(string comment, double radius, double thickness, Glass? g, bool stop = false)
         {
@@ -95,25 +93,33 @@ public static class Exporters
             });
         }
         Add("Object at infinity", double.PositiveInfinity, double.PositiveInfinity, null);
-        Add("Outer shell front", r1, r1 - r2, outer);
-        Add("Ball front", r2, r2, inner);
-        Add("Stop at centre", double.PositiveInfinity, r2, inner, stop: true);
-        Add("Ball back", -r2, r1 - r2, outer);
-        Add("Outer shell back", -r1, sImg - r1, null);
-        Add("Concentric spherical image", -sImg, 0.0, null);
+        for (int k = 0; k < lens.Surfaces.Count; k++)
+        {
+            var s = lens.Surfaces[k];
+            bool last = k == lens.Surfaces.Count - 1;
+            Add(s.Comment, s.Radius == 0 ? double.PositiveInfinity : s.Radius, last ? 0.0 : s.Thickness, s.Glass, s.Stop);
+        }
         return sys;
     }
 
-    private static List<string> CatalogOrder(Glass outer, Glass inner, AcGlassCatalog acGlass, List<string> warnings)
+    private static List<string> CatalogOrder(List<Glass> glasses, AcGlassCatalog acGlass, List<string> warnings)
     {
-        var cats = new[] { outer.Catalog, inner.Catalog }.Distinct().ToList();
-        bool Resolves(List<string> order) =>
-            acGlass.Find(outer.Name, order)?.Catalog == outer.Catalog && acGlass.Find(inner.Name, order)?.Catalog == inner.Catalog;
-        if (Resolves(cats)) return cats;
-        cats.Reverse();
-        if (Resolves(cats)) return cats;
-        warnings.Add($"{outer.Id} and {inner.Id}: no catalog order resolves both bare names to their own vendor; "
+        var cats = glasses.Select(g => g.Catalog).Distinct().ToList();
+        bool Resolves(List<string> order) => glasses.All(g => acGlass.Find(g.Name, order)?.Catalog == g.Catalog);
+        foreach (var order in Permutations(cats))
+            if (Resolves(order)) return order;
+        warnings.Add($"{string.Join(", ", glasses.Select(g => g.Id))}: no catalog order resolves every bare name to its own vendor; "
                      + "check the glasses after opening the OSLO, Optalix and LHLT files");
         return cats;
+    }
+
+    private static IEnumerable<List<string>> Permutations(List<string> items)
+    {
+        if (items.Count <= 1) { yield return new List<string>(items); yield break; }
+        for (int i = 0; i < items.Count; i++)
+        {
+            var rest = items.Where((_, k) => k != i).ToList();
+            foreach (var p in Permutations(rest)) { p.Insert(0, items[i]); yield return p; }
+        }
     }
 }

@@ -28,6 +28,11 @@ if (opt.Command is null || opt.Has("help"))
         --primary the 1-based reference wavelength (default the middle one). --design-lambda (Eq. 9 and Q)
         defaults to the d line when it lies inside the band, else to the primary wavelength.
         --settings loads a file saved by the GUI or save-settings; any option given as well overrides it.
+
+        Four-glass asymmetric lens with an air gap (Stamenov, Agurok, Ford, Appl. Opt. 52, 8287 (2013)):
+          search --arch 4GA-8 [--core SUMITA:K-GFK68,...] [--cores 1] [--grouping fine|normal|coarse] [other options]
+        Without --core the core is the best ball glass of a 2GS search (--cores N: the best N). Each core takes
+        minutes (coarse) to about an hour (fine) with 9 wavelengths; fewer wavelengths are proportionally faster.
         """);
     return 0;
 }
@@ -81,6 +86,10 @@ static SearchSettings ReadSettings(Options opt)
     if (opt.Has("min-bfl")) s.MinBackFocus = opt.GetD("min-bfl", 0);
     if (opt.Has("fov")) s.HalfFieldAngle = opt.GetD("fov", s.HalfFieldAngle);
     if (opt.Has("max-dcte")) s.MaxCteDifference = opt.GetD("max-dcte", 1.5);
+    if (opt.Has("arch")) s.Architecture = opt.Get("arch", s.Architecture).ToUpperInvariant();
+    if (opt.Has("core")) s.CoreGlasses = opt.Get("core", "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+    if (opt.Has("cores")) s.CoreCount = opt.GetI("cores", s.CoreCount);
+    if (opt.Has("grouping")) s.GlassGrouping = opt.Get("grouping", s.GlassGrouping).ToLowerInvariant();
     if (opt.Has("catalogs")) s.Catalogs = opt.Get("catalogs", "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
     if (opt.Has("include-obsolete")) s.IncludeObsolete = true;
     if (opt.Has("mode")) s.Mode = opt.Get("mode", s.Mode);
@@ -95,8 +104,38 @@ static SearchSettings ReadSettings(Options opt)
     return s;
 }
 
+static int Search4(SearchSettings settings, string catDir)
+{
+    var sp = settings.ToSpec();
+    Console.WriteLine($"4GA-8: f={sp.F}, F/{sp.FNumber}, {sp.NLambda} wavelengths {sp.Lambda.Min()}-{sp.Lambda.Max()} um, "
+        + $"grouping {settings.GlassGrouping}, {Environment.ProcessorCount} threads"
+        + (settings.MaxCteDifference is { } dc ? $"; cemented CTE difference <= {dc}e-6/K" : ""));
+    var r = Ga8Search.Run(settings, catDir, new ConsoleProgress(), default, m => Console.WriteLine("\r  " + m));
+    Console.WriteLine($"\r  {r.GlassesUsable} usable glasses, {r.Screened:N0} combinations screened"
+        + (r.Unstartable > 0 ? $" ({r.Unstartable:N0} could not be started)" : "") + $", {r.Elapsed.TotalMinutes:F1} min");
+    foreach (var b in r.Baselines)
+        Console.WriteLine($"  best 2GS with core {b.Core.Id}: shell {b.Shell.Id}, RMS {b.RmsWaves:F4} waves");
+
+    string csv = Ga8Search.WriteCsv(r, Path.Combine(settings.OutputFolder, $"ranked_{r.Tag}.csv"));
+    Console.WriteLine($"Top {r.Ranked.Count} written to {csv}");
+    foreach (var c in r.Ranked.Take(20))
+        Console.WriteLine($"  {c.Rank,3} fam {c.Family,3}  {c.Glasses,-64} C={c.C:F5} RMS={c.RmsWaves:F4} "
+            + $"R={c.Radii.R1:F3},{c.Radii.R2:F3},{c.Radii.R4:F3},{c.Radii.R5:F3},{c.Radii.R6:F3} bfl={c.BackFocus:F2} dCTE={c.DeltaCte:F1}");
+
+    if (settings.ExportCount > 0)
+    {
+        foreach (var w in Ga8Search.Export(r, r.Ranked.Take(settings.ExportCount), catDir, settings.OutputFolder,
+                     settings.ExportFormats, settings.OptilandInstall, settings.ResolvedZemaxGlasscat))
+            Console.WriteLine("  " + w);
+        Console.WriteLine($"Top {Math.Min(settings.ExportCount, r.Ranked.Count)} written as {string.Join(", ", settings.ExportFormats)}, "
+            + $"one folder each, in {Path.GetFullPath(settings.OutputFolder)}");
+    }
+    return 0;
+}
+
 static int Search(SearchSettings settings, string catDir)
 {
+    if (settings.Architecture == "4GA-8") return Search4(settings, catDir);
     var sp = settings.ToSpec();
     Console.WriteLine($"f={sp.F}, F/{sp.FNumber}, mode={settings.Mode}, {Environment.ProcessorCount} threads");
     Console.WriteLine("  wavelengths " + string.Join(", ", sp.Lambda.Select((l, k) =>

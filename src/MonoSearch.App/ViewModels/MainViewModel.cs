@@ -41,6 +41,27 @@ public sealed class ResultRow
     public double DeltaCte => Candidate.DeltaCte;
 }
 
+/// <summary>One row of the 4GA-8 results table.</summary>
+public sealed class Ga8Row
+{
+    public required Ga8Candidate Candidate { get; init; }
+    public int Rank => Candidate.Rank;
+    public int Family => Candidate.Family;
+    public string Front => Candidate.Front.Label;
+    public string Core => Candidate.Core.Label;
+    public string Rear => Candidate.Rear.Label;
+    public string Meniscus => Candidate.Meniscus.Label;
+    public double R1 => Candidate.Radii.R1;
+    public double R2 => Candidate.Radii.R2;
+    public double R4 => Candidate.Radii.R4;
+    public double R5 => Candidate.Radii.R5;
+    public double R6 => Candidate.Radii.R6;
+    public double BackFocus => Candidate.BackFocus;
+    public double C => Candidate.C;
+    public double Rms => Candidate.RmsWaves;
+    public double DeltaCte => Candidate.DeltaCte;
+}
+
 /// <summary>
 /// The search settings as the window edits them, the settings file they belong to, and the last result.
 /// Every settings property marks the document changed, so New, Open and closing can ask before discarding.
@@ -51,6 +72,12 @@ public partial class MainViewModel : ObservableObject
         { "paper: r1 at the minimum of Q (Eq. 31), as the paper", "direct: r1 at the minimum of the wavefront" };
     public static readonly string[] FocusNames =
         { "poly: weighted least-squares focus over the band", "eq36: the paper's Eq. 36 (zero defocus at the primary)" };
+
+    public static readonly string[] ArchitectureNames =
+        { "2GS: two-glass symmetric (2012 paper)", "4GA-8: four glasses, asymmetric, air gap (2013 paper)" };
+    public static readonly string[] GroupingNames =
+        { "fine (slowest)", "normal", "coarse (fastest)" };
+    private static readonly string[] GroupingKeys = { "fine", "normal", "coarse" };
 
     private static readonly Dictionary<string, string> FormatDescriptions = new()
     {
@@ -73,6 +100,11 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _includeObsolete;
     [ObservableProperty] private int _modeIndex;
     [ObservableProperty] private int _focusIndex;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(Is4GA8))] private int _architectureIndex;
+    [ObservableProperty] private string _coreGlassesText = "";
+    [ObservableProperty] private int _coreCount;
+    [ObservableProperty] private int _groupingIndex;
+    public bool Is4GA8 => ArchitectureIndex == 1;
     [ObservableProperty] private int _scanPoints;
     [ObservableProperty] private int _keepTop;
     [ObservableProperty] private int _exportCount;
@@ -90,6 +122,7 @@ public partial class MainViewModel : ObservableObject
         nameof(FocalLength), nameof(FNumber), nameof(MinBackFocus), nameof(HalfFieldAngle), nameof(LimitCte), nameof(MaxCteDifference), nameof(PrimaryWavelength), nameof(AutoDesignWavelength),
         nameof(DesignWavelength), nameof(IncludeObsolete), nameof(ModeIndex), nameof(FocusIndex), nameof(ScanPoints),
         nameof(KeepTop), nameof(ExportCount), nameof(OutputFolder), nameof(OptilandInstall), nameof(ZemaxGlasscat),
+        nameof(ArchitectureIndex), nameof(CoreGlassesText), nameof(CoreCount), nameof(GroupingIndex),
     };
 
     // ── Document ────────────────────────────────────────────────────────────────
@@ -105,33 +138,49 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _statusText = "Set the lens and band, then Run.";
     [ObservableProperty] private string _summaryText = "";
     public ObservableCollection<ResultRow> Results { get; } = new();
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanExport))] private SearchResult? _lastResult;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanExport), nameof(Shows4GA8), nameof(CanUseCores))]
+    private SearchResult? _lastResult;
+    public ObservableCollection<Ga8Row> Results4 { get; } = new();
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CanExport), nameof(Shows4GA8))] private Ga8Result? _lastResult4;
+    /// <summary>The 4GA-8 table is shown (the last run was 4GA-8); otherwise the 2GS table.</summary>
+    public bool Shows4GA8 => LastResult4 != null;
+    public bool CanUseCores => LastResult is { Ranked.Count: > 0 };
 
     // ── Drawing of the selected design ──────────────────────────────────────────
     [ObservableProperty] private ResultRow? _selectedResult;
+    [ObservableProperty] private Ga8Row? _selectedResult4;
     [ObservableProperty] private LensLayout? _selectedLayout;
     [ObservableProperty] private string _selectedText = "";
 
     partial void OnSelectedResultChanged(ResultRow? value) => UpdateDrawing();
+    partial void OnSelectedResult4Changed(Ga8Row? value) => UpdateDrawing();
 
     // The field does not enter the search, so the drawing follows it without a new run.
     partial void OnHalfFieldAngleChanged(double value) => UpdateDrawing();
 
     private void UpdateDrawing()
     {
-        var c = SelectedResult?.Candidate;
-        if (c is null || !(HalfFieldAngle >= 0 && HalfFieldAngle < 90))
+        MonoLens? lens = Shows4GA8
+            ? (SelectedResult4?.Candidate is { } c4 ? MonoLens.From(c4) : null)
+            : (SelectedResult?.Candidate is { } c2 ? MonoLens.From(c2) : null);
+        if (lens is null || !(HalfFieldAngle >= 0 && HalfFieldAngle < 90))
         {
             SelectedLayout = null;
-            SelectedText = c is null ? "" : "Half field of view must be from 0 to below 90 degrees.";
+            SelectedText = lens is null ? "" : "Half field of view must be from 0 to below 90 degrees.";
             return;
         }
-        var L = LensLayout.Build(c, HalfFieldAngle);
+        var L = LensLayout.Build(lens, HalfFieldAngle);
         SelectedLayout = L;
-        SelectedText = $"Rank {c.Rank}: shell {c.Outer.Id}, ball {c.Inner.Id}.  r1 {c.E.R1:F3}, r2 {c.E.R2:F3}, "
-                       + $"image radius {c.ImageRadius:F3}, back focus {c.BackFocus:F3}, stop diameter {2 * L.StopSemi:F3} mm.  "
+        string design = Shows4GA8 && SelectedResult4?.Candidate is { } c
+            ? $"Rank {c.Rank} (family {c.Family}): {c.Front.Id} / {c.Core.Id} / {c.Rear.Id} / {c.Meniscus.Id}.  "
+              + $"R1 {c.Radii.R1:F3}, R2 {c.Radii.R2:F3}, R4 {c.Radii.R4:F3}, R5 {c.Radii.R5:F3}, R6 {c.Radii.R6:F3}, "
+              + $"image radius {c.ImageRadius:F3}, back focus {c.BackFocus:F3}"
+            : SelectedResult?.Candidate is { } d
+                ? $"Rank {d.Rank}: shell {d.Outer.Id}, ball {d.Inner.Id}.  r1 {d.E.R1:F3}, r2 {d.E.R2:F3}, "
+                  + $"image radius {d.ImageRadius:F3}, back focus {d.BackFocus:F3}"
+                : "";
+        SelectedText = design + $", stop diameter {2 * L.StopSemi:F3} mm.  "
                        + $"Rays at {L.Wavelength} um, fields {string.Join(", ", L.FieldAngles.Select(a => $"{a:0.##}"))} deg"
-                       + (L.FullShell ? "; the shells close into a complete spherical shell at this field" : "")
                        + (L.Failed > 0 ? $"; {L.Failed} ray(s) not traced" : "") + ".";
     }
 
@@ -194,6 +243,10 @@ public partial class MainViewModel : ObservableObject
             MaxCteDifference = s.MaxCteDifference ?? 1.5;
             ModeIndex = s.Mode == "direct" ? 1 : 0;
             FocusIndex = s.Focus == "eq36" ? 1 : 0;
+            ArchitectureIndex = s.Architecture == "4GA-8" ? 1 : 0;
+            CoreGlassesText = string.Join(", ", s.CoreGlasses);
+            CoreCount = s.CoreCount;
+            GroupingIndex = Math.Max(0, Array.IndexOf(GroupingKeys, s.GlassGrouping));
             ScanPoints = s.ScanPoints;
             KeepTop = s.KeepTop;
 
@@ -222,6 +275,10 @@ public partial class MainViewModel : ObservableObject
         MaxCteDifference = LimitCte ? MaxCteDifference : null,
         Mode = ModeIndex == 1 ? "direct" : "paper",
         Focus = FocusIndex == 1 ? "eq36" : "poly",
+        Architecture = ArchitectureIndex == 1 ? "4GA-8" : "2GS",
+        CoreGlasses = CoreGlassesText.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList(),
+        CoreCount = CoreCount,
+        GlassGrouping = GroupingKeys[Math.Clamp(GroupingIndex, 0, 2)],
         ScanPoints = ScanPoints,
         KeepTop = KeepTop,
         ExportCount = ExportCount,
@@ -263,6 +320,9 @@ public partial class MainViewModel : ObservableObject
         Results.Clear();
         SelectedResult = null;
         LastResult = null;
+        Results4.Clear();
+        SelectedResult4 = null;
+        LastResult4 = null;
         SummaryText = "";
         Progress = 0;
     }
@@ -323,6 +383,7 @@ public partial class MainViewModel : ObservableObject
         var progress = new Progress<double>(p => Progress = Math.Max(Progress, p * 100));
         try
         {
+            if (settings.Architecture == "4GA-8") { await Run4(settings, progress, _cts.Token); return; }
             var r = await Task.Run(() => SearchEngine.Run(settings, CatalogFolder, progress, _cts.Token));
             LastResult = r;
             foreach (var c in r.Ranked) Results.Add(new ResultRow { Candidate = c });
@@ -347,15 +408,78 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    private async Task Run4(SearchSettings settings, IProgress<double> progress, CancellationToken cancel)
+    {
+        StatusText = "4GA-8: " + (settings.CoreGlasses.Count > 0 ? "screening..." : "2GS search for the core...");
+        IProgress<string> log = new Progress<string>(m => StatusText = "4GA-8: " + m);
+        var r = await Task.Run(() => Ga8Search.Run(settings, CatalogFolder, progress, cancel, log.Report));
+        LastResult4 = r;
+        foreach (var c in r.Ranked) Results4.Add(new Ga8Row { Candidate = c });
+        SelectedResult4 = Results4.FirstOrDefault();
+        Progress = 100;
+        SummaryText = $"4GA-8: {r.GlassesUsable} usable glasses"
+                      + (r.GlassesWithoutCte > 0 ? $" ({r.GlassesWithoutCte} without a CTE left out)" : "")
+                      + (r.Settings.MaxCteDifference is { } dc ? $", cemented CTE difference <= {dc}" : "")
+                      + $", {r.Screened:N0} combinations screened"
+                      + (r.Unstartable > 0 ? $" ({r.Unstartable:N0} could not be started)" : "")
+                      + $", {r.Elapsed.TotalMinutes:F1} min. "
+                      + string.Join(" ", r.Baselines.Select(b => $"Best 2GS with core {b.Core.Id}: {b.Shell.Id}, RMS {b.RmsWaves:F4} waves."));
+        StatusText = r.Ranked.Count == 0 ? "No valid 4GA-8 design. Relax the back focus, the CTE limit or widen the catalogs."
+            : $"Done: best {r.Ranked[0].Glasses}, RMS {r.Ranked[0].RmsWaves:F4} waves.";
+    }
+
+    /// <summary>Sets up a 4GA-8 search seeded with the ball glasses of the given 2GS designs (the paper's procedure).</summary>
+    public void UseCores(IEnumerable<Candidate> designs)
+    {
+        var ids = designs.Select(c => c.Inner.Id).Distinct().ToList();
+        if (ids.Count == 0) return;
+        ArchitectureIndex = 1;
+        CoreGlassesText = string.Join(", ", ids);
+        StatusText = $"4GA-8 set up with core {CoreGlassesText}. Press Run.";
+    }
+
     private bool CanCancel() => IsRunning;
 
     [RelayCommand(CanExecute = nameof(CanCancel))]
     private void Cancel() => _cts?.Cancel();
 
-    public bool CanExport => !IsRunning && LastResult is { Ranked.Count: > 0 };
+    public bool CanExport => !IsRunning && (LastResult is { Ranked.Count: > 0 } || LastResult4 is { Ranked.Count: > 0 });
 
     /// <summary>Writes the ranked CSV and the top N (Export count) in the chosen formats; returns the warnings.</summary>
-    public Task<List<string>> ExportTop() => ExportCandidates(LastResult!.Ranked.Take(Math.Max(0, ExportCount)).ToList());
+    public Task<List<string>> ExportTop() => Shows4GA8
+        ? ExportCandidates4(LastResult4!.Ranked.Take(Math.Max(0, ExportCount)).ToList())
+        : ExportCandidates(LastResult!.Ranked.Take(Math.Max(0, ExportCount)).ToList());
+
+    public async Task<List<string>> ExportCandidates4(List<Ga8Candidate> candidates)
+    {
+        var r = LastResult4;
+        if (r is null) return new List<string>();
+        var formats = Formats.Where(f => f.IsSelected).Select(f => f.Name).ToList();
+        string outDir = ResolvedOutputFolder();
+        string glasscat = string.IsNullOrWhiteSpace(ZemaxGlasscat) ? r.Settings.ResolvedZemaxGlasscat : ZemaxGlasscat;
+        bool install = OptilandInstall;
+        IsRunning = true;
+        StatusText = "Exporting...";
+        try
+        {
+            var warnings = await Task.Run(() =>
+            {
+                Ga8Search.WriteCsv(r, Path.Combine(outDir, $"ranked_{r.Tag}.csv"));
+                return candidates.Count > 0 && formats.Count > 0
+                    ? Ga8Search.Export(r, candidates, CatalogFolder, outDir, formats, install, glasscat)
+                    : new List<string>();
+            });
+            StatusText = $"Wrote the ranked CSV and {candidates.Count} design(s) as {string.Join(", ", formats)} to {outDir}"
+                         + (warnings.Count > 0 ? $" ({warnings.Count} warning(s))" : "");
+            return warnings;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            StatusText = "Export failed: " + ex.Message;
+            return new List<string> { ex.Message };
+        }
+        finally { IsRunning = false; }
+    }
 
     public async Task<List<string>> ExportCandidates(List<Candidate> candidates)
     {

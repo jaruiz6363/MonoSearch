@@ -3,15 +3,15 @@ using System.Text;
 
 namespace MonoSearch;
 
-/// <summary>Writes a candidate as an OpticStudio .zmx (UTF-16LE, CRLF): object at infinity, shell, ball,
-/// stop at the centre, ball, shell, concentric spherical image at the refocused distance.</summary>
+/// <summary>Writes a monocentric lens as an OpticStudio .zmx (UTF-16LE, CRLF): object at infinity, the lens's
+/// surfaces with the stop at the centre, and the concentric spherical image.</summary>
 public static class ZmxWriter
 {
     /// <summary>Returns warnings for glasses OpticStudio may not resolve.</summary>
-    public static List<string> Write(string path, Spec sp, Glass outer, Glass inner, Eval e, int rank, ZemaxCatalogs? zc)
+    public static List<string> Write(string path, MonoLens lens, ZemaxCatalogs? zc)
     {
         var ci = CultureInfo.InvariantCulture;
-        double r1 = e.R1, r2 = e.R2, sImg = sp.F - e.DS;
+        var sp = lens.Spec;
         var warnings = new List<string>();
         (string Cat, string Name) Pick(Glass g)
         {
@@ -25,10 +25,8 @@ public static class ZmxWriter
             if (!r.Value.Exact) warnings.Add($"{g.Id} -> {r.Value.Catalog}:{r.Value.Name} has the same nd but different dispersion data");
             return (r.Value.Catalog, r.Value.Name);
         }
-        var (oCat, oName) = Pick(outer);
-        var (iCat, iName) = Pick(inner);
-        var cats = new List<string> { oCat };
-        if (!cats.Contains(iCat)) cats.Add(iCat);
+        var names = lens.Glasses.ToDictionary(g => g, Pick);
+        var cats = names.Values.Select(v => v.Cat).Distinct().ToList();
         string F(double v) => v.ToString("R", ci);
         var fields = sp.FieldAngles;
         int nf = fields.Length;
@@ -37,9 +35,9 @@ public static class ZmxWriter
         var L = new List<string>
         {
             "VERS 221026 119 20120530 20120530", "MODE SEQ",
-            $"NAME Monocentric rank {rank}: {outer.Name} / {inner.Name}, f={F(sp.F)}, F/{F(sp.FNumber)}",
+            $"NAME {lens.Title}",
             "AUTH ", "IWDP 0",
-            $"NOTE 0 MonoSearch (Stamenov, Agurok, Ford, Appl. Opt. 51, 7648 (2012)). Outer {outer.Id}, inner {inner.Id}. dPhi2 = {e.DPhi2.ToString("F5", ci)}.",
+            $"NOTE 0 {lens.Note}",
             "PFIL 0 0 0", "LANG 0", "UNIT MM X W X CM MR CPMM",
             $"ENPD {F(2 * sp.H1)}", "ENVD 20 1 0", "GFAC 0 0",
             "GCAT " + string.Join(" ", cats) + " ",
@@ -72,16 +70,16 @@ public static class ZmxWriter
             L.Add("  HIDE 0 0 0 0 0 0 0 0 0 0 0 0"); L.Add("  MIRR 2 0");
             L.Add($"  DISZ {t}");
             // OpticStudio matches upper-case names when it reads a .zmx (K-LaSFn9 fails, K-LASFN9 resolves).
-            if (g != null) L.Add($"  GLAS {(g == outer ? oName : iName).ToUpperInvariant()} 0 0 1.5 40 0 0 0 0 0 0 ");
+            if (g != null) L.Add($"  GLAS {names[g].Name.ToUpperInvariant()} 0 0 1.5 40 0 0 0 0 0 0 ");
             L.Add("  DIAM 0 0 0 0 1 \"\""); L.Add("  POPS 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0");
         }
         Surf(0, "Object at infinity", 0, "INFINITY", null);
-        Surf(1, "Outer shell front", r1, F(r1 - r2), outer);
-        Surf(2, "Ball front", r2, F(r2), inner);
-        Surf(3, "Stop at centre", 0, F(r2), inner, stop: true);
-        Surf(4, "Ball back", -r2, F(r1 - r2), outer);
-        Surf(5, "Outer shell back", -r1, F(sImg - r1), null);
-        Surf(6, "Concentric spherical image", -sImg, "0", null);
+        for (int k = 0; k < lens.Surfaces.Count; k++)
+        {
+            var s = lens.Surfaces[k];
+            bool last = k == lens.Surfaces.Count - 1;
+            Surf(k + 1, s.Comment, s.Radius, last ? "0" : F(s.Thickness), s.Glass, s.Stop);
+        }
         L.Add("BLNK ");
         L.Add("TOL TOFF   0   0 0.0000000000000000E+00 0.0000000000000000E+00   0 0 0 0 0");
         L.Add("MNUM 1 1");
