@@ -152,7 +152,8 @@ requires every combination to start.
 | ZMX after the move to AberrationCalculator's writer | Old and new files of 2GS ranks 1–3 and 4GA-8 rank 1 opened in OpticStudio (0.2.3) | Same radii, thicknesses, glasses, catalogs, aperture, fields and wavelengths. EFL identical: 11.99663, 11.99692, 11.99706 and 12.00552 mm. Rank 2 (HOYA M-TAFD405, an alias case) gave the same MTF curves at every field, 0–200 lp/mm. |
 | Optiland `.json` | Ranks 1 and 3 loaded in Optiland 0.6 | EFL 11.9966 / 11.9971 mm, as in OpticStudio; per-wavelength RMS wavefront within about 0.007 waves of OpticStudio's |
 | OSLO `.len`, Optalix `.otx`, LensHH-LT `.lhlt` | Read back with AberrationCalculator's readers (`MonoSearch.exe readback`) | Same prescription and EFL as the ZMX and Optiland files |
-| LensHH-LT `.lhlt` | A few exported files opened in LensHH-LT by the author | What was looked at matched OpticStudio. Which files and which analyses were compared was not recorded. |
+| LensHH-LT `.lhlt` | A few exported files opened in LensHH-LT by the author: the 4GA-8 exports for f = 12 mm, F/1.71, core K-LaSFn9, ranks 1–10 | What was looked at matched OpticStudio. |
+| LensHH-LT `.lhlt` against OpticStudio `.zmx`, the same lens | 4GA-8 rank 1 of that export (LASF35 / K-LaSFn9 / TAFD30 / S-LAH79), through LensHH-LT's own tool server and OpticStudio (0.2.3) | EFL 12.0055 mm in both. BFL 2.5357 in LensHH-LT against 2.5302 in OpticStudio, which equals the file's image distance; the cause of that difference is not established. FFT MTF at 210 lp/mm (pupil grid 128, OpticStudio sampling 3), T / S: on axis 0.6503 against 0.6568; 30° 0.6531 / 0.6522 against 0.6381 / 0.6528; 60° 0.5072 / 0.6701 against 0.4915 / 0.6361. The two agree to about 1 % on axis, and LensHH-LT is up to 5 % higher off axis. That is one design; why the off-axis values differ (for example, how each program measures MTF on a curved image surface) has not been looked into. |
 
 ---
 
@@ -188,8 +189,8 @@ GUI has not been run yet.
 ## Not yet checked
 
 - The OSLO and Optalix files have not been opened in OSLO or Optalix themselves.
-- LensHH-LT has had a few files opened, without a recorded comparison (above). A check like the OpticStudio one,
-  with named designs, EFL and MTF, has not been made.
+- LensHH-LT has been compared with OpticStudio on one design only (above). The 1–5 % off-axis MTF difference
+  and the 5.5 µm BFL difference are not explained.
 - MISC glasses (Corning HPFS 7980) are not in LensHH-LT's catalogs.
 - The 4GA-8 full-search winners have not been compared with the paper's family I in OpticStudio.
 - The 0.018 mm r1 offset against the 2012 paper is not explained.
