@@ -83,6 +83,11 @@ The default output folder is `~/Documents/MonoSearch/results`, or `~/MonoSearch/
 
 Settings are on the left and results on the right.
 
+![MonoSearch after a 2GS search for f = 100 mm, F/3, ±20°, with a back focus of at least 40 mm. Rank 1, an OHARA S-LAH60 shell on a SUMITA K-GFK68 ball, is selected and drawn.](images/Example1.png)
+
+*A 2GS search for f = 100 mm, F/3, ±20° and a back focus of at least 40 mm. Rank 1 is selected and drawn below
+the table.*
+
 The right side, from top to bottom:
 
 - **Buttons:** Run, Stop, Export Top N, Export Selected, Save Table as CSV..., Open Output Folder, Use Cores
