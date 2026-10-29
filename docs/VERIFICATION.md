@@ -153,6 +153,7 @@ requires every combination to start.
 | Optiland `.json` | Ranks 1 and 3 loaded in Optiland 0.6 | EFL 11.9966 / 11.9971 mm, as in OpticStudio; per-wavelength RMS wavefront within about 0.007 waves of OpticStudio's |
 | OSLO `.len`, Optalix `.otx`, LensHH-LT `.lhlt` | Read back with AberrationCalculator's readers (`MonoSearch.exe readback`) | Same prescription and EFL as the ZMX and Optiland files |
 | OSLO `.len` in OSLO EDU | 2GS rank 1, opened by the author (0.2.3) | The first file failed to load: OSLO allows at most 80 characters per system note and this note had 140 ("Error at sno_: system note: Argument can not contain more than 80 chars"). Fixed in AberrationCalculator's OSLO writer (49c5b7e: notes wrapped at words, notes 1–9 only). OSLO's paraxial setup then gave EFL 11.99657 mm (OpticStudio 11.99663), entrance beam radius 3.50877 mm, field angle 60°, and 2.91906 mm from the last surface to the image, as written. Its Gaussian image distance, 2.93121 mm, is the paraxial focus; the file places the image at the polychromatic best focus. |
+| OSLO lens drawing, in OSLO EDU | 2GS rank 1, by the author (0.2.3), over five rounds | OSLO first drew its defaults: one 3-ray axial fan and chief rays, every ray ending on one plane, and no image surface. Each fix copies what OSLO wrote when the setting was made by hand, saved as a `.len` (AberrationCalculator 492f2cf to e24d6fd): drawing fans of 15 rays at 0, 0.333 and 1.0 of the full field (`DLNR`/`DLFP`/`DLMN`/`DLMX`, index from 0); `DLNF 3` first, since OSLO loads a `.len` with two fans and refused the third; `DRW ON` on the image surface, which OSLO otherwise takes for a dummy (air on both sides); and `DLRS 3`, rays drawn to the image surface, without which the image surface is not drawn and off-axis beams run past it. Final drawing: three beams, each focused on the drawn curved image surface. |
 | Code V `.seq` | Read back with AberrationCalculator's Code V reader (`MonoSearch.exe readback`): 2GS ranks 1–3 and 4GA-8 rank 1 (0.2.3) | Same radii, thicknesses and glasses as the other five files, and the same EFL: 11.99663, 11.99692, 11.99706 and 12.00552 mm. Glasses written as `NAME_CATALOG` (`MTAFD405_HOYA`) read back as the right vendor's glass. |
 | LensHH-LT `.lhlt` | A few exported files opened in LensHH-LT by the author: the 4GA-8 exports for f = 12 mm, F/1.71, core K-LaSFn9, ranks 1–10 | What was looked at matched OpticStudio. One of them is measured in the next section. |
 
@@ -215,8 +216,7 @@ GUI has not been run yet.
   by Optalix and LensHH-LT. OSLO 6.6 itself did not save a field points set into the `.len` (a file saved by
   OSLO after the fields were set, 2026-10-29), so the evaluation fields are chosen in OSLO, per analysis. That
   file did show OSLO's lens drawing conditions, after `END`; the exports now write the three fields as drawing
-  fans of 15 rays (AberrationCalculator 492f2cf). How OSLO draws them, and the `DLLS` line that draws the image
-  surface (not seen in an OSLO-written file), are not yet checked in OSLO.
+  fans (see the OSLO row in [Exported files](#exported-files)).
 - LensHH-LT has been compared with OpticStudio on one design only, in
   [LensHH-LT against OpticStudio](#lenshh-lt-against-opticstudio). The 1–5 % off-axis MTF difference and the
   5.5 µm BFL difference found there are not explained.

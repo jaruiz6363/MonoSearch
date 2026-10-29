@@ -354,7 +354,7 @@ asks for its field as a fraction of it (FBY). OSLO Premium can also keep a field
 and OSLO did not save one into a `.len` in testing. Without wide-angle ray aiming, FBY is a fraction of the
 object height, which for an object at infinity goes with tan θ, so a 30° field of a 60° lens is
 FBY = tan 30° / tan 60° ≈ 0.333, not 0.5. The three fields do reach OSLO's lens drawing: the file sets three
-drawing fans of 15 rays each, at 0, 0.333 and 1.0, and draws through the image surface.
+drawing fans of 15 rays each, at 0, 0.333 and 1.0, drawn to the curved image surface, which is drawn too.
 
 ### CSV files
 
