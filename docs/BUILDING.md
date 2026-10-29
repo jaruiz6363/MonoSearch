@@ -26,7 +26,7 @@ Build from source only to change MonoSearch or to run it on a system without a r
 - **git**.
 
 Nothing else needs fetching. AberrationCalculator is part of this repository: it is a `git subtree` in
-`external/AberrationCalculator` (see below). There are no machine-specific paths, and a plain clone builds as
+`external/AberrationCalculator` (see [AberrationCalculator](#aberrationcalculator)). There are no machine-specific paths, and a plain clone builds as
 it is.
 
 AberrationCalculator's IO library writes all five export formats: ZEMAX `.zmx`, OSLO `.len`, Optalix `.otx`,
@@ -102,7 +102,7 @@ known commit, the same way TolerancingModule and AthermalizeModule carry it.
   git subtree pull --prefix=external/AberrationCalculator https://github.com/jaruiz6363/AberrationCalculator.git main --squash
   ```
 
-  Then build and run the quick checks below. Commit fixes to AberrationCalculator in its own repository and pull
+  Then build and run the [quick checks](#quick-checks-after-a-change). Commit fixes to AberrationCalculator in its own repository and pull
   them here; do not edit `external/` directly.
 
 ## Quick checks after a change
@@ -121,7 +121,7 @@ MonoSearch.exe search --arch 4GA-8 --cores 1 --grouping coarse --top 20 --export
 | `readback` | All five files give the same prescription and EFL 11.99663 |
 | 4GA-8 search | About 2½ minutes. No "could not be started" line. Rank 1 is LASF35 / K-LaSFn9 / TAFD30 / S-LAH79, C = 0.00059, RMS 0.0634. |
 
-The release smoke tests check the 2GS and 4GA-8 rank 1 (below). [VERIFICATION.md](VERIFICATION.md) has the
+The release smoke tests check the 2GS and 4GA-8 rank 1 (see [The release packages](#the-release-packages)). [VERIFICATION.md](VERIFICATION.md) has the
 full checks.
 
 ### The icon
