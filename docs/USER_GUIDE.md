@@ -348,7 +348,11 @@ The folder holds one file per chosen format, named after the specification, for 
 | OSLO `.len`, Optalix `.otx`, LensHH-LT `.lhlt` | These programs look the glasses up in their own catalogs. MISC glasses (Corning HPFS 7980) are not in LensHH-LT's. |
 | Optiland `.json` | Comes with a `_glass` folder holding the exact glass data, and a README. With the install option on, the glasses are also copied into `~/.optiland/catalogs`, so Optiland finds them at its next start. |
 
-The exported files have the stop at the centre and three fields: on axis, half field and full field.
+The exported files have the stop at the centre and three fields: on axis, half field and full field. The
+exception is OSLO: its `.len` file carries only the full field angle (`ANG`), and in OSLO the other fields are
+fractions of it, chosen in the field points set or in each analysis. Without wide-angle ray aiming, OSLO's
+fraction (FBY) is of the object height, which for an object at infinity goes with tan θ, so a 30° field of a
+60° lens is FBY = tan 30° / tan 60° ≈ 0.333, not 0.5.
 
 ### CSV files
 

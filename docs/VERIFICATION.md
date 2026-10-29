@@ -208,6 +208,10 @@ GUI has not been run yet.
 ## Not yet checked
 
 - The Code V, OSLO and Optalix files have not been opened in Code V, OSLO or Optalix themselves.
+- The OSLO `.len` file carries only the full field angle, so `readback` reports two fields for it (on axis and
+  full) where the other formats report three. Every `.len` file on hand does the same, including ones written
+  by Optalix and LensHH-LT. Whether a `.len` file can carry OSLO's field points set has not been established;
+  a file saved by OSLO itself with a field points set would show it.
 - LensHH-LT has been compared with OpticStudio on one design only, in
   [LensHH-LT against OpticStudio](#lenshh-lt-against-opticstudio). The 1–5 % off-axis MTF difference and the
   5.5 µm BFL difference found there are not explained.
