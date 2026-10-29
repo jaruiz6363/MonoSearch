@@ -44,10 +44,11 @@ src\MonoSearch.Core\   searches, ray traces, catalogs, settings, exporters
 src\MonoSearch\        command line (MonoSearch.exe)
 src\MonoSearch.App\    GUI (MonoSearchApp.exe, Avalonia)
 docs\                  the documents above
+external\AberrationCalculator\   git subtree: lens model and the OSLO, Optalix, Optiland and LHLT writers
 ```
 
-`dotnet build MonoSearch.sln -c Release` builds all three projects. It needs AberrationCalculator next to it;
-see [Building](docs/BUILDING.md).
+Open `MonoSearch.sln` in Visual Studio 2022, or run `dotnet build MonoSearch.sln -c Release` with the .NET 8 SDK
+or newer. A plain clone builds as it is: AberrationCalculator comes with it. See [Building](docs/BUILDING.md).
 
 ## Glass data
 

@@ -15,9 +15,10 @@ are listed in [REFERENCES.md](REFERENCES.md): "2012" is Appl. Opt. 51, 7648 and 
 `MonoSearch.exe check` computes each glass's nd from its dispersion formula and compares it with the nd the
 catalog states.
 
-- 1787 of 1799 glasses agree to 5×10⁻⁵.
-- The other 12 are CDGM infrared glasses with placeholder nd, plus three entries whose formula disagrees with
-  their own nd. Those three are excluded from the search.
+- 1630 of the 1642 glasses in the bundled catalogs agree to 5×10⁻⁵.
+- The other 12 are nine CDGM infrared glasses (HWS1–HWS9, HWS27) with placeholder nd = 1, plus three
+  entries whose formula disagrees with their own nd: CDGM H-TK9, HOYA MC-FAD61 and MC-TAF115. Those three are
+  excluded from the search.
 
 ---
 

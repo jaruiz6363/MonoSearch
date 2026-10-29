@@ -87,11 +87,11 @@ catalog.
 
 | Component | Version | Use |
 |---|---|---|
-| .NET | 9 | Runtime and SDK |
+| .NET | 8 (net8.0) | Runtime and SDK |
 | Avalonia (with Avalonia.Desktop, Themes.Fluent, Controls.DataGrid) | 11.2.3 | GUI |
 | CommunityToolkit.Mvvm | 8.4.0 | View-model bindings |
 | MessageBox.Avalonia | 3.3.1.1 | Message boxes |
-| AberrationCalculator.IO | source, by path | OSLO, Optalix, Optiland and LHLT writers and readers |
+| AberrationCalculator.IO | git subtree in `external/AberrationCalculator` | OSLO, Optalix, Optiland and LHLT writers and readers |
 | Inno Setup | 6 | Windows installer (release repository) |
 
 **Windows power throttling.** Both programs call `SetProcessInformation` with `ProcessPowerThrottling`
