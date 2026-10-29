@@ -59,6 +59,7 @@ src\MonoSearch\        command line (MonoSearch.exe)
 src\MonoSearch.App\    GUI (MonoSearchApp.exe, Avalonia)
 docs\                  the documents above
 external\AberrationCalculator\   git subtree: lens model and the OSLO, Optalix, Optiland and LHLT writers
+                       (ZEMAX .zmx is written by MonoSearch.Core's own ZmxWriter)
 ```
 
 To build it yourself, open `MonoSearch.sln` in Visual Studio 2022, or run

@@ -91,7 +91,7 @@ catalog.
 | Avalonia (with Avalonia.Desktop, Themes.Fluent, Controls.DataGrid) | 11.2.3 | GUI |
 | CommunityToolkit.Mvvm | 8.4.0 | View-model bindings |
 | MessageBox.Avalonia | 3.3.1.1 | Message boxes |
-| AberrationCalculator.IO | git subtree in `external/AberrationCalculator` | OSLO, Optalix, Optiland and LHLT writers and readers |
+| AberrationCalculator.IO | git subtree in `external/AberrationCalculator` | OSLO, Optalix, Optiland and LHLT writers; readers for all five formats, ZMX included (the ZMX writer is MonoSearch's own) |
 | Inno Setup | 6 | Windows installer (release repository) |
 
 **Windows power throttling.** Both programs call `SetProcessInformation` with `ProcessPowerThrottling`

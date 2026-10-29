@@ -25,9 +25,18 @@ Build from source only to change MonoSearch or to run it on a system without a r
   - on Windows, macOS or Linux, the **.NET 8 SDK** or newer.
 - **git**.
 
-Nothing else needs fetching. AberrationCalculator, whose IO library writes the OSLO, Optalix, Optiland and LHLT
-files, is part of this repository: it is a `git subtree` in `external/AberrationCalculator` (see below). There
-are no machine-specific paths. A plain clone builds as it is.
+Nothing else needs fetching. AberrationCalculator is part of this repository: it is a `git subtree` in
+`external/AberrationCalculator` (see below). There are no machine-specific paths, and a plain clone builds as
+it is.
+
+The five export formats are written as follows:
+
+| Format | Written by |
+|---|---|
+| ZEMAX `.zmx` | MonoSearch's own writer, `src/MonoSearch.Core/ZmxWriter.cs`, checked in OpticStudio |
+| OSLO `.len`, Optalix `.otx`, Optiland `.json`, LensHH-LT `.lhlt` | AberrationCalculator's IO library |
+
+`MonoSearch.exe readback` reads all five back, the ZMX included, with AberrationCalculator's readers.
 
 ## Get the source
 
