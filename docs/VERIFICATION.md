@@ -203,8 +203,19 @@ build.
 3. **macOS GUI:** it must start and stay running after opening a `.monosearch` file through Launch Services. A
    screenshot is kept with the workflow run.
 
-The Linux rank 1 line was identical to the Windows one when the AppImage was first built (0.2.3). The Linux
-GUI has not been run yet.
+The first full build of all three packages (0.2.3, MonoSearch a97fbc2, AberrationCalculator daa2066) passed
+every test above:
+
+- **Windows:** 2GS rank 1 S-LAH79 / K-LaSFn9 with all six formats; 4GA-8 rank 1 LASF35 / K-LaSFn9 / TAFD30 /
+  S-LAH79, C = 0.00059, RMS 0.0634 waves.
+- **Linux** (WSL Ubuntu 22.04): the AppImage's rank 1 line identical to the Windows one, all six formats
+  written.
+- **macOS** (GitHub-hosted Apple Silicon Mac, run 40922954918): the app signed ad hoc, "valid on disk" and
+  "satisfies its Designated Requirement" with 242 files sealed; `check` reads the same 1642 glasses; "macOS
+  ranks exactly as Windows does"; all six formats written and read back with the same EFL (11.99663 mm). The
+  GUI, opening a `.monosearch` file through Finder (Launch Services), showed the window title
+  "MonoSearch - smoke.monosearch", so the macOS file-open path works. The final zip, unzipped again, still
+  verified.
 
 ---
 
@@ -224,5 +235,5 @@ GUI has not been run yet.
 - MISC glasses (Corning HPFS 7980) are not in LensHH-LT's catalogs.
 - The 4GA-8 full-search winners have not been compared with the paper's family I in OpticStudio.
 - The 0.018 mm r1 offset against the 2012 paper is not explained.
-- The Linux GUI has not been run. The macOS package has not been tried on a Mac other than the GitHub-hosted
-  one.
+- The Linux GUI has not been run (the WSL distribution used for the build lacks two X11 libraries). The macOS
+  app has run only on the GitHub-hosted Mac, not on a Mac of the author's.
