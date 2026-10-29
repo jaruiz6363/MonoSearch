@@ -212,8 +212,11 @@ GUI has not been run yet.
   paraxial data has been checked; no image-quality analysis yet.
 - The OSLO `.len` file carries only the full field angle, so `readback` reports two fields for it (on axis and
   full) where the other formats report three. Every `.len` file on hand does the same, including ones written
-  by Optalix and LensHH-LT. Whether a `.len` file can carry OSLO's field points set has not been established;
-  a file saved by OSLO itself with a field points set would show it.
+  by Optalix and LensHH-LT. OSLO 6.6 itself did not save a field points set into the `.len` (a file saved by
+  OSLO after the fields were set, 2026-10-29), so the evaluation fields are chosen in OSLO, per analysis. That
+  file did show OSLO's lens drawing conditions, after `END`; the exports now write the three fields as drawing
+  fans of 15 rays (AberrationCalculator 492f2cf). How OSLO draws them, and the `DLLS` line that draws the image
+  surface (not seen in an OSLO-written file), are not yet checked in OSLO.
 - LensHH-LT has been compared with OpticStudio on one design only, in
   [LensHH-LT against OpticStudio](#lenshh-lt-against-opticstudio). The 1–5 % off-axis MTF difference and the
   5.5 µm BFL difference found there are not explained.

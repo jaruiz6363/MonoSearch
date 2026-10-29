@@ -349,10 +349,12 @@ The folder holds one file per chosen format, named after the specification, for 
 | Optiland `.json` | Comes with a `_glass` folder holding the exact glass data, and a README. With the install option on, the glasses are also copied into `~/.optiland/catalogs`, so Optiland finds them at its next start. |
 
 The exported files have the stop at the centre and three fields: on axis, half field and full field. The
-exception is OSLO: its `.len` file carries only the full field angle (`ANG`), and in OSLO the other fields are
-fractions of it, chosen in the field points set or in each analysis. Without wide-angle ray aiming, OSLO's
-fraction (FBY) is of the object height, which for an object at infinity goes with tan θ, so a 30° field of a
-60° lens is FBY = tan 30° / tan 60° ≈ 0.333, not 0.5.
+exception is OSLO, whose `.len` file has no field list: `ANG` is the full field angle, and each OSLO analysis
+asks for its field as a fraction of it (FBY). OSLO Premium can also keep a field points set; OSLO EDU cannot,
+and OSLO did not save one into a `.len` in testing. Without wide-angle ray aiming, FBY is a fraction of the
+object height, which for an object at infinity goes with tan θ, so a 30° field of a 60° lens is
+FBY = tan 30° / tan 60° ≈ 0.333, not 0.5. The three fields do reach OSLO's lens drawing: the file sets three
+drawing fans of 15 rays each, at 0, 0.333 and 1.0, and draws through the image surface.
 
 ### CSV files
 
