@@ -71,3 +71,8 @@ The catalogs are the glass makers' own AGF files: SCHOTT, OHARA, HOYA, SUMITA an
 Corning HPFS 7980 fused silica from Corning's data sheet. Nothing from an OpticStudio installation is bundled.
 On export, MonoSearch reads your own OpticStudio Glasscat folder, read only, so the ZMX files name glasses
 OpticStudio can find.
+
+## License
+
+MIT, Copyright (c) 2026 Javier Ruiz: see [LICENSE](LICENSE). Authors: Javier Ruiz and Claude Code ([AUTHORS](AUTHORS)).
+AberrationCalculator, in `external\AberrationCalculator`, is MIT licensed as well.
