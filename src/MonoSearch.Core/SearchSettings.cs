@@ -93,7 +93,7 @@ public sealed class SearchSettings
     public SearchSettings Clone() => JsonSerializer.Deserialize<SearchSettings>(JsonSerializer.Serialize(this, Json), Json)!;
 
     public string ResolvedZemaxGlasscat =>
-        ZemaxGlasscat ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Zemax", "Glasscat");
+        ZemaxGlasscat ?? Path.Combine(UserFolders.Documents, "Zemax", "Glasscat");
 
     /// <summary>The design spec, after checking every value; throws ArgumentException with a message for the user.</summary>
     public Spec ToSpec()

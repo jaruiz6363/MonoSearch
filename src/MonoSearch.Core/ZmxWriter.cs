@@ -19,7 +19,7 @@ public static class ZmxWriter
             var r = zc.Resolve(g);
             if (r is null)
             {
-                warnings.Add($"{g.Id} is not in the OpticStudio catalogs in {zc.Folder}; copy catalogs\\{g.Catalog}.AGF there to open this file");
+                warnings.Add($"{g.Id} is not in the OpticStudio catalogs in {zc.Folder}; copy {Path.Combine("catalogs", g.Catalog + ".AGF")} there to open this file");
                 return (g.Catalog, g.Name);
             }
             if (!r.Value.Exact) warnings.Add($"{g.Id} -> {r.Value.Catalog}:{r.Value.Name} has the same nd but different dispersion data");

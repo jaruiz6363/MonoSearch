@@ -29,7 +29,9 @@ public partial class MainWindow : Window
 
     private async void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        bool ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control), shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+        // Cmd on macOS, as Mac users expect; Ctrl everywhere.
+        bool ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control) || (OperatingSystem.IsMacOS() && e.KeyModifiers.HasFlag(KeyModifiers.Meta)),
+             shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         if (e.Key == Key.F5 && Vm?.RunCommand.CanExecute(null) == true) { e.Handled = true; await Vm.RunCommand.ExecuteAsync(null); }
         else if (ctrl && e.Key == Key.N) { e.Handled = true; NewClick(this, new RoutedEventArgs()); }
         else if (ctrl && e.Key == Key.O) { e.Handled = true; OpenClick(this, new RoutedEventArgs()); }
@@ -77,10 +79,23 @@ public partial class MainWindow : Window
             FileTypeFilter = new[] { SettingsType, AllFiles },
         });
         if (files.Count == 0) return;
-        try { Vm.Open(files[0].Path.LocalPath); }
+        await OpenFile(files[0].Path.LocalPath);
+    }
+
+    /// <summary>Opens a settings file handed to the program: the command-line argument (a file double-clicked in
+    /// Explorer or a Linux file manager), or a file macOS's Finder sends while the program runs.</summary>
+    public async Task OpenPath(string path)
+    {
+        if (Vm is null || !await ConfirmDiscard()) return;
+        await OpenFile(path);
+    }
+
+    private async Task OpenFile(string path)
+    {
+        try { Vm!.Open(path); }
         catch (Exception ex) when (ex is IOException or System.Text.Json.JsonException or InvalidDataException or UnauthorizedAccessException)
         {
-            await Message("Open failed", $"{files[0].Path.LocalPath} could not be read:\n\n{ex.Message}", MsgIcon.Error);
+            await Message("Open failed", $"{path} could not be read:\n\n{ex.Message}", MsgIcon.Error);
         }
     }
 

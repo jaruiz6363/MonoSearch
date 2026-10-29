@@ -334,7 +334,7 @@ public partial class MainViewModel : ObservableObject
         if (Path.IsPathRooted(folder)) return folder;
         string baseDir = CurrentFile != null
             ? Path.GetDirectoryName(Path.GetFullPath(CurrentFile))!
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "MonoSearch");
+            : Path.Combine(UserFolders.Documents, "MonoSearch");
         return Path.GetFullPath(Path.Combine(baseDir, folder));
     }
 
