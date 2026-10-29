@@ -29,10 +29,10 @@ Nothing else needs fetching. AberrationCalculator is part of this repository: it
 `external/AberrationCalculator` (see [AberrationCalculator](#aberrationcalculator)). There are no machine-specific paths, and a plain clone builds as
 it is.
 
-AberrationCalculator's IO library writes all five export formats: ZEMAX `.zmx`, OSLO `.len`, Optalix `.otx`,
+AberrationCalculator's IO library writes all six export formats: ZEMAX `.zmx`, Code V `.seq`, OSLO `.len`, Optalix `.otx`,
 Optiland `.json` and LensHH-LT `.lhlt`. MonoSearch builds one AberrationCalculator lens model per design and
 hands it to each writer. For the ZMX it first renames the glasses to the names your OpticStudio Glasscat folder
-uses. `MonoSearch.exe readback` reads all five back with AberrationCalculator's readers.
+uses. `MonoSearch.exe readback` reads all six back with AberrationCalculator's readers.
 
 ## Get the source
 
@@ -118,7 +118,7 @@ MonoSearch.exe search --arch 4GA-8 --cores 1 --grouping coarse --top 20 --export
 |---|---|
 | `check` | 1642 glasses, 12 with an nd difference above 5×10⁻⁵ |
 | 2GS search | Rank 1 is OHARA:S-LAH79 / SUMITA:K-LaSFn9, r1 = 9.065 |
-| `readback` | All five files give the same prescription and EFL 11.99663 |
+| `readback` | All six files give the same prescription and EFL 11.99663 |
 | 4GA-8 search | About 2½ minutes. No "could not be started" line. Rank 1 is LASF35 / K-LaSFn9 / TAFD30 / S-LAH79, C = 0.00059, RMS 0.0634. |
 
 The release smoke tests check the 2GS and 4GA-8 rank 1 (see [The release packages](#the-release-packages)). [VERIFICATION.md](VERIFICATION.md) has the
@@ -178,11 +178,11 @@ pwsh .\build.ps1 -Source <local clone>      a local clone instead, to test befor
 3. **Windows.** It runs the 2GS and 4GA-8 smoke tests on the published `MonoSearch.exe`, then packages the
    folder with `windows\MonoSearch.iss` into `MonoSearch-Setup-<version>.exe`.
 4. **Linux.** It assembles the AppImage in WSL, with real Unix file modes. It then runs the AppImage's command
-   line there: the 2GS rank 1 must be the same line as on Windows, and all five formats must be written.
+   line there: the 2GS rank 1 must be the same line as on Windows, and all six formats must be written.
 5. **macOS.** It builds `MonoSearch.app` and zips it with Unix file modes. The zip goes to a temporary
    prerelease of the release repository, and the `mac-package` workflow runs on a GitHub-hosted Mac:
    - it signs the app ad hoc with Apple's `codesign` and verifies it as Gatekeeper does;
-   - it runs the command line, whose 2GS rank 1 must match the Windows one, and the five exports;
+   - it runs the command line, whose 2GS rank 1 must match the Windows one, and the six exports;
    - it opens a `.monosearch` file in the GUI through Launch Services;
    - it zips the app with `ditto` and verifies the zip again.
 

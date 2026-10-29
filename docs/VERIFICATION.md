@@ -152,6 +152,7 @@ requires every combination to start.
 | ZMX after the move to AberrationCalculator's writer | Old and new files of 2GS ranks 1–3 and 4GA-8 rank 1 opened in OpticStudio (0.2.3) | Same radii, thicknesses, glasses, catalogs, aperture, fields and wavelengths. EFL identical: 11.99663, 11.99692, 11.99706 and 12.00552 mm. Rank 2 (HOYA M-TAFD405, an alias case) gave the same MTF curves at every field, 0–200 lp/mm. |
 | Optiland `.json` | Ranks 1 and 3 loaded in Optiland 0.6 | EFL 11.9966 / 11.9971 mm, as in OpticStudio; per-wavelength RMS wavefront within about 0.007 waves of OpticStudio's |
 | OSLO `.len`, Optalix `.otx`, LensHH-LT `.lhlt` | Read back with AberrationCalculator's readers (`MonoSearch.exe readback`) | Same prescription and EFL as the ZMX and Optiland files |
+| Code V `.seq` | Read back with AberrationCalculator's Code V reader (`MonoSearch.exe readback`): 2GS ranks 1–3 and 4GA-8 rank 1 (0.2.3) | Same radii, thicknesses and glasses as the other five files, and the same EFL: 11.99663, 11.99692, 11.99706 and 12.00552 mm. Glasses written as `NAME_CATALOG` (`MTAFD405_HOYA`) read back as the right vendor's glass. |
 | LensHH-LT `.lhlt` | A few exported files opened in LensHH-LT by the author: the 4GA-8 exports for f = 12 mm, F/1.71, core K-LaSFn9, ranks 1–10 | What was looked at matched OpticStudio. One of them is measured in the next section. |
 
 ### LensHH-LT against OpticStudio
@@ -189,7 +190,7 @@ as `9.0654`, with a decimal point.
 build.
 
 1. **2GS, on all three systems:** f = 12 mm, F/1.71, the bundled catalogs. Rank 1 must be S-LAH79 /
-   K-LaSFn9, and its export must write all five formats.
+   K-LaSFn9, and its export must write all six formats.
    - Linux runs the AppImage's command line in WSL Ubuntu 22.04.
    - macOS runs the signed app's command line on a GitHub-hosted Apple Silicon Mac.
    - On both, the rank 1 line, with its radii, back focus, (ΔΦ)² and ΔCTE, must be identical to the Windows
@@ -206,7 +207,7 @@ GUI has not been run yet.
 
 ## Not yet checked
 
-- The OSLO and Optalix files have not been opened in OSLO or Optalix themselves.
+- The Code V, OSLO and Optalix files have not been opened in Code V, OSLO or Optalix themselves.
 - LensHH-LT has been compared with OpticStudio on one design only, in
   [LensHH-LT against OpticStudio](#lenshh-lt-against-opticstudio). The 1–5 % off-axis MTF difference and the
   5.5 µm BFL difference found there are not explained.

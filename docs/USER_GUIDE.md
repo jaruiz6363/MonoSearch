@@ -9,7 +9,7 @@ about one centre, with the stop at that centre and a spherical image. It searche
 | **4GA-8** | Four-glass asymmetric with an air gap: front shell, core ball, rear shell, air, meniscus. Five radii R1, R2, R4, R5, R6. | Stamenov, Agurok and Ford, Appl. Opt. 52, 8287 (2013), Fig. 9 |
 
 Every combination of glasses from the vendor catalogs is tried, and the radii of each are optimised. The
-result is a ranked table, which can be exported as lens files for OpticStudio, OSLO, Optalix, Optiland and
+result is a ranked table, which can be exported as lens files for OpticStudio, Code V, OSLO, Optalix, Optiland and
 LensHH-LT.
 
 See [REFERENCES.md](REFERENCES.md) for the papers and data sources, and [VERIFICATION.md](VERIFICATION.md)
@@ -170,7 +170,7 @@ These settings apply to 2GS.
 | Setting | Default | Meaning |
 |---|---|---|
 | Export top N | 10 | How many designs Export Top N writes. |
-| Formats | all five | ZEMAX `.zmx`, OSLO `.len`, Optalix `.otx`, Optiland `.json`, LensHH-LT `.lhlt`. |
+| Formats | all six | ZEMAX `.zmx`, Code V `.seq`, OSLO `.len`, Optalix `.otx`, Optiland `.json`, LensHH-LT `.lhlt`. |
 | Output folder | `results` | See below. |
 | Install Optiland glasses into ~/.optiland/catalogs | on | See section 7. |
 | OpticStudio Glasscat folder | `Documents\Zemax\Glasscat` | Read only, to write glass names OpticStudio will find. |
@@ -344,6 +344,7 @@ The folder holds one file per chosen format, named after the specification, for 
 | Format | Notes |
 |---|---|
 | ZEMAX `.zmx` | Opens in OpticStudio. MonoSearch reads your OpticStudio Glasscat folder (read only) so the file names glasses OpticStudio has, and warns about any it does not have. |
+| Code V `.seq` | Each glass is written as Code V names it, the name without punctuation plus its catalog, for example `SLAH79_OHARA`, so the vendor travels with the name. |
 | OSLO `.len`, Optalix `.otx`, LensHH-LT `.lhlt` | These programs look the glasses up in their own catalogs. MISC glasses (Corning HPFS 7980) are not in LensHH-LT's. |
 | Optiland `.json` | Comes with a `_glass` folder holding the exact glass data, and a README. With the install option on, the glasses are also copied into `~/.optiland/catalogs`, so Optiland finds them at its next start. |
 
@@ -385,7 +386,7 @@ MonoSearch.exe save-settings --file my.monosearch --f 70 --fno 3.5
 | `--catalogs SCHOTT,OHARA,...`, `--include-obsolete`, `--max-dcte` | Glass catalogs |
 | `--arch 2GS\|4GA-8`, `--core`, `--cores`, `--grouping fine\|normal\|coarse` | Architecture |
 | `--mode paper\|direct`, `--focus poly\|eq36`, `--scan`, `--top` | Search |
-| `--export`, `--formats zmx,len,otx,json,lhlt`, `--out`, `--no-optiland-install`, `--zemax-glasscat` | Export |
+| `--export`, `--formats zmx,seq,len,otx,json,lhlt`, `--out`, `--no-optiland-install`, `--zemax-glasscat` | Export |
 
 The command line takes a relative `--out` from the current folder. It always writes the ranked CSV and prints
 the top designs.

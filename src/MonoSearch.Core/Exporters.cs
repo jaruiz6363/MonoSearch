@@ -12,7 +12,7 @@ namespace MonoSearch;
 /// </summary>
 public static class Exporters
 {
-    public static readonly string[] AllFormats = { "zmx", "len", "otx", "json", "lhlt" };
+    public static readonly string[] AllFormats = { "zmx", "seq", "len", "otx", "json", "lhlt" };
 
     /// <summary>Writes the requested formats into <paramref name="folder"/>; returns warnings.</summary>
     public static List<string> Write(string folder, string baseName, IEnumerable<string> formats, MonoLens lens,
@@ -44,6 +44,10 @@ public static class Exporters
                         break;
                     case "lhlt":
                         LhltWriter.Write(system, path);
+                        break;
+                    case "seq":
+                        // Code V: each glass as NAME_CATALOG (SLAH79_OHARA), so the vendor travels with the name.
+                        CodeVWriter.Write(system, path, acGlass);
                         break;
                     default:
                         warnings.Add($"unknown format '{fmt}' (use {string.Join(", ", AllFormats)})");

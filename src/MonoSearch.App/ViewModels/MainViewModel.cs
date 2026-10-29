@@ -81,7 +81,7 @@ public partial class MainViewModel : ObservableObject
 
     private static readonly Dictionary<string, string> FormatDescriptions = new()
     {
-        ["zmx"] = "ZEMAX / OpticStudio (.zmx)", ["len"] = "OSLO (.len)", ["otx"] = "Optalix (.otx)",
+        ["zmx"] = "ZEMAX / OpticStudio (.zmx)", ["seq"] = "Code V (.seq)", ["len"] = "OSLO (.len)", ["otx"] = "Optalix (.otx)",
         ["json"] = "Optiland (.json)", ["lhlt"] = "LensHH-LT (.lhlt)",
     };
 

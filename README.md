@@ -3,7 +3,7 @@
 MonoSearch is a global glass search for monocentric lenses: lenses whose surfaces are all spheres about one
 centre, with the stop at the centre and a spherical image. It tries every combination of glasses from the
 vendor catalogs, optimises the radii of each, ranks them, and exports the best as lens files for
-OpticStudio, OSLO, Optalix, Optiland and LensHH-LT.
+OpticStudio, Code V, OSLO, Optalix, Optiland and LensHH-LT.
 
 | Architecture | Lens | After |
 |---|---|---|
@@ -58,7 +58,7 @@ src\MonoSearch.Core\   searches, ray traces, catalogs, settings, exporters
 src\MonoSearch\        command line (MonoSearch.exe)
 src\MonoSearch.App\    GUI (MonoSearchApp.exe, Avalonia)
 docs\                  the documents above
-external\AberrationCalculator\   git subtree: lens model, and the writers and readers of all five export formats
+external\AberrationCalculator\   git subtree: lens model, and the writers and readers of all six export formats
 ```
 
 To build it yourself, open `MonoSearch.sln` in Visual Studio 2022, or run

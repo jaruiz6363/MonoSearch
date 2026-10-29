@@ -15,7 +15,7 @@ if (opt.Command is null || opt.Has("help"))
 
           search  [--settings file.monosearch] --f 12 --fno 1.71 --lambda 0.47,0.55,0.65
                   [--catalogs SCHOTT,OHARA,HOYA,SUMITA,CDGM,MISC] [--mode paper|direct] [--top 200] [--export 10]
-                  [--formats zmx,len,otx,json,lhlt] [--scan 400] [--include-obsolete] [--min-bfl 0] [--fov 60] [--max-dcte 1.5] [--out results]
+                  [--formats zmx,seq,len,otx,json,lhlt] [--scan 400] [--include-obsolete] [--min-bfl 0] [--fov 60] [--max-dcte 1.5] [--out results]
           eval    --f 12 --fno 1.71 --lambda 0.47,0.55,0.65 --outer OHARA:S-LAH79 --inner SUMITA:LASFN9 [--r1 9.049]
           check   [--catalogs ...]      compare computed nd with the catalog nd for every glass
           readback --dir <folder>       read exported lens files back and compare their prescriptions
@@ -202,6 +202,7 @@ static int Readback(Options opt, string catDir)
                 ".otx" => AberrationCalculator.Core.IO.OptalixReader.Read(file, acGlass),
                 ".json" => AberrationCalculator.Core.IO.OptilandReader.Read(file, acGlass),
                 ".lhlt" => AberrationCalculator.Core.IO.LhltReader.Read(file).System,
+                ".seq" => AberrationCalculator.Core.IO.CodeVReader.Read(file, acGlass),
                 _ => null!,
             };
             if (sys is null) continue;
