@@ -23,6 +23,10 @@ public sealed class LensLayout
     public required List<GlassRegion> Regions { get; init; }
     public required double StopSemi { get; init; }
     public required double ImageAngle { get; init; }
+    /// <summary>The angles the rays reach, before the drawing's edge is added: clear apertures, as OpticStudio's
+    /// automatic semi-diameters (per surface, then the image).</summary>
+    public required double[] ClearAngle { get; init; }
+    public required double ClearImageAngle { get; init; }
     public required double[] FieldAngles { get; init; }
     public required double Wavelength { get; init; }
     public required List<RayPath> Rays { get; init; }
@@ -68,6 +72,7 @@ public sealed class LensLayout
                 image = Math.Max(image, FromRear(pts[ns]));
             }
         }
+        var clear = (double[])angle.Clone();
         // A little edge beyond the last ray, as a mounted element would have.
         const double edge = 2.0 * Math.PI / 180;
         for (int s = 0; s < ns - 1; s++) if (surf[s].Radius != 0) angle[s] = Math.Min(Math.PI / 2, angle[s] + edge);
@@ -79,7 +84,7 @@ public sealed class LensLayout
 
         return new LensLayout
         {
-            Lens = lens, Angle = angle, Regions = regions, StopSemi = stop, ImageAngle = image + edge,
+            Lens = lens, Angle = angle, Regions = regions, StopSemi = stop, ImageAngle = image + edge, ClearAngle = clear, ClearImageAngle = image,
             FieldAngles = fields, Wavelength = lam, Rays = rays, Failed = failed,
         };
     }

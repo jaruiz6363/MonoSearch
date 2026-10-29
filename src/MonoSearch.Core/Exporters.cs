@@ -36,7 +36,7 @@ public static class Exporters
                         OsloWriter.Write(system, path, acGlass);
                         break;
                     case "otx":
-                        OptalixWriter.Write(system, path, acGlass);
+                        OptalixWriter.Write(WithApertures(lens, acGlass), path, acGlass);
                         break;
                     case "json":
                         var r = OptilandWriter.Write(system, path, acGlass, optilandInstall);
@@ -133,6 +133,29 @@ public static class Exporters
                 (sys.Surfaces[k + 1].CatalogName, sys.Surfaces[k + 1].Material) = names[g];
         sys.GlassCatalogs.Clear();
         sys.GlassCatalogs.AddRange(names.Values.Select(v => v.Catalog).Distinct());
+        return sys;
+    }
+
+    /// <summary>The lens model for the Optalix file, with every surface's semi-diameter: as wide as the real rays of the
+    /// full field need (the trace the drawing below the table uses, without the drawing's edge), the stop as the
+    /// on-axis beam fills it. For 2GS rank 1 these agree with OpticStudio's automatic semi-diameters. Without
+    /// them Optalix sizes the apertures itself, far smaller than a wide-field monocentric lens's beams: in its layout
+    /// the rays passed outside every lens outline (Optalix, 2026-10-29). The semi-diameters stay automatic, so they
+    /// clip nothing. Only this file gets them: OSLO would write them as fixed apertures and draw the lens otherwise,
+    /// and the other formats write a semi-diameter only when it is fixed.</summary>
+    private static OpticalSystem WithApertures(MonoLens lens, AcGlassCatalog acGlass)
+    {
+        var sys = Build(lens, acGlass, new List<string>());   // its catalog-order warnings are reported once, by Write
+        var layout = LensLayout.Build(lens, lens.Spec.FieldAngles.Max());
+        int last = lens.Surfaces.Count - 1;
+        for (int k = 0; k <= last; k++)
+        {
+            double r = Math.Abs(lens.Surfaces[k].Radius);
+            double semi = lens.Surfaces[k].Stop ? layout.StopSemi
+                : k == last ? r * Math.Sin(layout.ClearImageAngle)
+                : r * Math.Sin(layout.ClearAngle[k]);
+            if (semi > 0) sys.Surfaces[k + 1].SemiDiameter = semi;   // surface 0 of the model is the object
+        }
         return sys;
     }
 

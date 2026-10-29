@@ -345,7 +345,7 @@ The folder holds one file per chosen format, named after the specification, for 
 |---|---|
 | ZEMAX `.zmx` | Opens in OpticStudio. MonoSearch reads your OpticStudio Glasscat folder (read only) so the file names glasses OpticStudio has, and warns about any it does not have. |
 | Code V `.seq` | Each glass is written as Code V names it, the name without punctuation plus its catalog, for example `SLAH79_OHARA`, so the vendor travels with the name. |
-| OSLO `.len`, Optalix `.otx`, LensHH-LT `.lhlt` | These programs look the glasses up in their own catalogs. MISC glasses (Corning HPFS 7980) are not in LensHH-LT's. |
+| OSLO `.len`, Optalix `.otx`, LensHH-LT `.lhlt` | These programs look the glasses up in their own catalogs. MISC glasses (Corning HPFS 7980) are not in LensHH-LT's. The Optalix file also gives every surface its clear aperture (as wide as the full field's rays need), since Optalix's own sizes are far too small for these lenses. |
 | Optiland `.json` | Comes with a `_glass` folder holding the exact glass data, and a README. With the install option on, the glasses are also copied into `~/.optiland/catalogs`, so Optiland finds them at its next start. |
 
 The exported files have the stop at the centre and three fields: on axis, half field and full field. The
