@@ -1,5 +1,5 @@
-# make-icon.ps1 — draws the application icon: icon.png (256 px) and icon.ico (the exe, the window, the
-# installer, shortcuts and .monosearch files).
+# make-icon.ps1 — draws the application icon: icon.png (256 px; also the Linux AppImage icon), icon.ico (the exe,
+# the window, the installer, shortcuts and .monosearch files) and icon.icns (the macOS app).
 #
 # The picture is a monocentric lens: an outer shell and a ball about one centre, three ray bundles
 # focusing on a concentric curved image. Run it again only to change the picture; the outputs are committed.
@@ -91,4 +91,20 @@ foreach ($img in $images) { $bw.Write($img) }
 $bw.Flush()
 [System.IO.File]::WriteAllBytes((Join-Path $Here 'icon.ico'), $ico.ToArray())
 
-Write-Host "Wrote icon.png and icon.ico in $Here"
+# icon.icns (macOS: the .app bundle, built by the release scripts): big-endian chunks of PNG images.
+function BE32([int]$v) { $b = [BitConverter]::GetBytes([uint32]$v); [Array]::Reverse($b); return , $b }
+$chunks = @(('icp4', 16), ('icp5', 32), ('icp6', 64), ('ic07', 128), ('ic08', 256), ('ic09', 512), ('ic10', 1024))
+$body = New-Object System.IO.MemoryStream
+foreach ($c in $chunks) {
+    $png = Png-Bytes $c[1]
+    $body.Write([System.Text.Encoding]::ASCII.GetBytes($c[0]), 0, 4)
+    $body.Write((BE32 ($png.Length + 8)), 0, 4)
+    $body.Write($png, 0, $png.Length)
+}
+$icns = New-Object System.IO.MemoryStream
+$icns.Write([System.Text.Encoding]::ASCII.GetBytes('icns'), 0, 4)
+$icns.Write((BE32 ($body.Length + 8)), 0, 4)
+$body.WriteTo($icns)
+[System.IO.File]::WriteAllBytes((Join-Path $Here 'icon.icns'), $icns.ToArray())
+
+Write-Host "Wrote icon.png, icon.ico and icon.icns in $Here"
