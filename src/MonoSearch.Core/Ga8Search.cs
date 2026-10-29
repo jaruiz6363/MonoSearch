@@ -213,7 +213,10 @@ public static class Ga8Search
         s2.Architecture = "2GS";
         s2.KeepTop = Math.Max(200, settings.KeepTop);
         var r2 = SearchEngine.Run(s2, catDir, null, cancel);
-        var cores = r2.Ranked.Select(c => c.Inner).Distinct().Take(settings.CoreCount).ToList();
+        // The 2GS search loads its own copy of the catalogs: map its ball glasses back to this search's glasses by id.
+        var cores = r2.Ranked.Select(c => c.Inner.Id).Distinct().Select(id => usable.FirstOrDefault(g => g.Id == id))
+            .OfType<Glass>().Take(settings.CoreCount).ToList();
+        if (cores.Count == 0) throw new ArgumentException("The 2GS search found no core glass; give core glasses explicitly.");
         log?.Invoke($"2GS search for the core: {string.Join(", ", cores.Select(c => c.Id))}");
         return cores;
     }

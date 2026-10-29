@@ -400,6 +400,13 @@ public partial class MainViewModel : ObservableObject
         }
         catch (OperationCanceledException) { StatusText = "Cancelled."; Progress = 0; }
         catch (Exception ex) when (ex is ArgumentException or FileNotFoundException or IOException) { StatusText = ex.Message; }
+        catch (Exception ex)
+        {
+            // Anything else is a bug: report it in the window rather than let it close the program.
+            var inner = ex is AggregateException ae ? ae.Flatten().InnerExceptions[0] : ex;
+            StatusText = $"Search failed ({inner.GetType().Name}): {inner.Message}";
+            Progress = 0;
+        }
         finally
         {
             IsRunning = false;
