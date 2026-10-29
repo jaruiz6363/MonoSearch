@@ -19,6 +19,13 @@ for what has been checked against the papers and OpticStudio.
 
 ## 1. Installing and starting
 
+Download the package for your system from the
+[Releases page](https://github.com/jaruiz6363/MonoSearch/releases). Each package holds the window (GUI), the
+command line (section 8), the glass catalogs and this documentation. Nothing else needs installing: the .NET
+runtime is included. There is no need to build MonoSearch yourself.
+
+### Windows 10 and 11
+
 Run `MonoSearch-Setup-<version>.exe`. The installer is not code-signed, so Windows may show "Windows
 protected your PC". Click **More info**, then **Run anyway**.
 
@@ -28,11 +35,47 @@ The installer installs for the current user by default. Its optional tasks are:
 - opening `.monosearch` files with MonoSearch (on);
 - adding the command line `MonoSearch.exe` to PATH (off).
 
-The Start menu gets MonoSearch, this documentation, the glass catalogs folder and the uninstaller.
+The Start menu gets MonoSearch, the README, this user guide, the glass catalogs folder and the uninstaller.
 Uninstalling leaves your settings files and results alone.
 
-`MonoSearchApp.exe` is the window. `MonoSearch.exe` in the same folder is the command line (section 8).
-Nothing else needs installing: the .NET runtime is included.
+`MonoSearchApp.exe` is the window. `MonoSearch.exe` in the same folder is the command line.
+
+### macOS 11 or later, Apple Silicon
+
+Unzip `MonoSearch-<version>-macOS-arm64.zip` and drag `MonoSearch.app` into Applications.
+
+- **First launch:** the app is signed but not notarized by Apple, so macOS says it cannot verify the developer.
+  Right-click (or Control-click) the app, choose **Open**, then **Open** again. After that a double-click is
+  enough.
+- **If macOS says the app "is damaged"**, the download was quarantined. In Terminal:
+  `xattr -dr com.apple.quarantine /Applications/MonoSearch.app`
+- **Command line:** `/Applications/MonoSearch.app/Contents/MacOS/MonoSearch`.
+- **Shortcuts:** Cmd works as well as Ctrl, so Cmd+S saves.
+
+Double-clicking a `.monosearch` file opens it in MonoSearch. `README-macOS.txt` in the zip repeats these
+steps.
+
+### Linux x86_64
+
+`MonoSearch-<version>-x86_64.AppImage` is the whole program in one file. Make it executable and run it:
+
+```
+chmod +x MonoSearch-<version>-x86_64.AppImage
+./MonoSearch-<version>-x86_64.AppImage                     the window
+./MonoSearch-<version>-x86_64.AppImage --cli search ...    the command line
+```
+
+- **Libraries:** the window needs the usual X11 desktop libraries (libX11, libICE, libSM, fontconfig), which
+  every desktop distribution has. On a minimal system: `sudo apt install libice6 libsm6`.
+- **If the AppImage will not start because FUSE is missing**, add `--appimage-extract-and-run` before the other
+  arguments.
+- **To type `monosearch` in a terminal**, put a two-line wrapper on your PATH:
+  `exec /path/to/MonoSearch-<version>-x86_64.AppImage --cli "$@"`.
+
+### Where results go on macOS and Linux
+
+The default output folder is `~/Documents/MonoSearch/results`, or `~/MonoSearch/results` if you have no
+`Documents` folder. On Windows it is `Documents\MonoSearch\results`.
 
 ---
 

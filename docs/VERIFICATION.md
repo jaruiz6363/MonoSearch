@@ -164,13 +164,22 @@ as `9.0654`, with a decimal point.
 
 ## Release smoke tests
 
-`build.ps1` in the release repository runs these on the published program before packaging. A failure stops
-the build.
+`build.ps1` in the release repository runs these on each package before it is released. A failure stops the
+build.
 
-1. **2GS:** f = 12 mm, F/1.71, the bundled catalogs. Rank 1 must be S-LAH79 / K-LaSFn9, and its export must
-   write all five formats.
-2. **4GA-8:** coarse grouping, with the core from a 2GS search. Every combination must start, rank 1 must be on
-   the K-LaSFn9 core, and it must export to ZMX and LHLT.
+1. **2GS, on all three systems:** f = 12 mm, F/1.71, the bundled catalogs. Rank 1 must be S-LAH79 /
+   K-LaSFn9, and its export must write all five formats.
+   - Linux runs the AppImage's command line in WSL Ubuntu 22.04.
+   - macOS runs the signed app's command line on a GitHub-hosted Apple Silicon Mac.
+   - On both, the rank 1 line, with its radii, back focus, (ΔΦ)² and ΔCTE, must be identical to the Windows
+     line.
+2. **4GA-8, on Windows:** coarse grouping, with the core from a 2GS search. Every combination must start,
+   rank 1 must be on the K-LaSFn9 core, and it must export to ZMX and LHLT.
+3. **macOS GUI:** it must start and stay running after opening a `.monosearch` file through Launch Services. A
+   screenshot is kept with the workflow run.
+
+The Linux rank 1 line was identical to the Windows one when the AppImage was first built (0.2.3). The Linux
+GUI has not been run yet.
 
 ---
 
@@ -180,3 +189,5 @@ the build.
 - MISC glasses (Corning HPFS 7980) are not in LensHH-LT's catalogs.
 - The 4GA-8 full-search winners have not been compared with the paper's family I in OpticStudio.
 - The 0.018 mm r1 offset against the 2012 paper is not explained.
+- The Linux GUI has not been run. The macOS package has not been tried on a Mac other than the GitHub-hosted
+  one.

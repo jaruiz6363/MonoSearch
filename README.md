@@ -14,6 +14,20 @@ For the 2012 paper's 12 mm F/1.71 lens, MonoSearch finds the paper's best glass 
 first among about a million pairs in a few seconds. Exported to OpticStudio, it gives MTF 0.646 at 200 lp/mm,
 against the paper's 0.65.
 
+## Download
+
+Ready-made programs are attached to each release on the
+[Releases page](https://github.com/jaruiz6363/MonoSearch/releases). There is no need to build MonoSearch.
+
+| File | System |
+|---|---|
+| `MonoSearch-Setup-<version>.exe` | Windows 10 and 11 (x64): installer |
+| `MonoSearch-<version>-macOS-arm64.zip` | macOS 11 or later, Apple Silicon |
+| `MonoSearch-<version>-x86_64.AppImage` | Linux x86_64 |
+
+Each includes the .NET runtime, the glass catalogs and the documents below. The
+[user guide](docs/USER_GUIDE.md#1-installing-and-starting) explains how to install each one.
+
 ## Documents
 
 | | |
@@ -47,8 +61,9 @@ docs\                  the documents above
 external\AberrationCalculator\   git subtree: lens model and the OSLO, Optalix, Optiland and LHLT writers
 ```
 
-Open `MonoSearch.sln` in Visual Studio 2022, or run `dotnet build MonoSearch.sln -c Release` with the .NET 8 SDK
-or newer. A plain clone builds as it is: AberrationCalculator comes with it. See [Building](docs/BUILDING.md).
+To build it yourself, open `MonoSearch.sln` in Visual Studio 2022, or run
+`dotnet build MonoSearch.sln -c Release` with the .NET 8 SDK or newer on Windows, macOS or Linux. A plain
+clone builds as it is: AberrationCalculator comes with it. See [Building](docs/BUILDING.md).
 
 ## Glass data
 
