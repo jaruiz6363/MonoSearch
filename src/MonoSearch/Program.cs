@@ -13,7 +13,7 @@ if (opt.Command is null || opt.Has("help"))
 
           search  [--settings file.monosearch] --f 12 --fno 1.71 --lambda 0.47,0.55,0.65
                   [--catalogs SCHOTT,OHARA,HOYA,SUMITA,CDGM,MISC] [--mode paper|direct] [--top 200] [--export 10]
-                  [--formats zmx,len,otx,json,lhlt] [--scan 400] [--include-obsolete] [--min-bfl 0] [--fov 60] [--out results]
+                  [--formats zmx,len,otx,json,lhlt] [--scan 400] [--include-obsolete] [--min-bfl 0] [--fov 60] [--max-dcte 1.5] [--out results]
           eval    --f 12 --fno 1.71 --lambda 0.47,0.55,0.65 --outer OHARA:S-LAH79 --inner SUMITA:LASFN9 [--r1 9.049]
           check   [--catalogs ...]      compare computed nd with the catalog nd for every glass
           readback --dir <folder>       read exported lens files back and compare their prescriptions
@@ -80,6 +80,7 @@ static SearchSettings ReadSettings(Options opt)
     if (opt.Has("design-lambda")) s.DesignWavelength = opt.GetD("design-lambda", SearchSettings.DLine);
     if (opt.Has("min-bfl")) s.MinBackFocus = opt.GetD("min-bfl", 0);
     if (opt.Has("fov")) s.HalfFieldAngle = opt.GetD("fov", s.HalfFieldAngle);
+    if (opt.Has("max-dcte")) s.MaxCteDifference = opt.GetD("max-dcte", 1.5);
     if (opt.Has("catalogs")) s.Catalogs = opt.Get("catalogs", "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
     if (opt.Has("include-obsolete")) s.IncludeObsolete = true;
     if (opt.Has("mode")) s.Mode = opt.Get("mode", s.Mode);
@@ -100,17 +101,19 @@ static int Search(SearchSettings settings, string catDir)
     Console.WriteLine($"f={sp.F}, F/{sp.FNumber}, mode={settings.Mode}, {Environment.ProcessorCount} threads");
     Console.WriteLine("  wavelengths " + string.Join(", ", sp.Lambda.Select((l, k) =>
         $"{l} um (w {sp.Weight[k]}){(k == sp.Primary ? " primary" : "")}")) + $"; design wavelength {sp.DesignLambda} um"
-        + (sp.MinBfl > 0 ? $"; back focus >= {sp.MinBfl} mm (r1 <= {sp.R1Max:F3})" : ""));
+        + (sp.MinBfl > 0 ? $"; back focus >= {sp.MinBfl} mm (r1 <= {sp.R1Max:F3})" : "")
+        + (settings.MaxCteDifference is { } dc ? $"; shell/ball CTE difference <= {dc}e-6/K" : ""));
 
     var r = SearchEngine.Run(settings, catDir, new ConsoleProgress());
-    Console.WriteLine($"\r  {r.GlassesRead} glasses read, {r.GlassesUsable} usable, {r.Pairs:N0} pairs, "
-        + $"{r.ValidDesigns:N0} valid designs, {r.Elapsed.TotalSeconds:F1} s");
+    Console.WriteLine($"\r  {r.GlassesRead} glasses read, {r.GlassesUsable} usable"
+        + (r.GlassesWithoutCte > 0 ? $" ({r.GlassesWithoutCte} more without a CTE left out)" : "")
+        + $", {r.Pairs:N0} pairs, {r.ValidDesigns:N0} valid designs, {r.Elapsed.TotalSeconds:F1} s");
 
     string csv = SearchEngine.WriteCsv(r, Path.Combine(settings.OutputFolder, $"ranked_{r.Tag}.csv"));
     Console.WriteLine($"Top {r.Ranked.Count} written to {csv}");
     foreach (var c in r.Ranked.Take(20))
         Console.WriteLine($"  {c.Rank,3}  {c.Outer.Label,-26} / {c.Inner.Label,-30} r1={c.E.R1:F3} r2={c.E.R2:F3} "
-            + $"bfl={c.BackFocus:F3} dPhi2={c.E.DPhi2:F4}");
+            + $"bfl={c.BackFocus:F3} dPhi2={c.E.DPhi2:F4} dCTE={c.DeltaCte:F1}");
 
     if (settings.ExportCount > 0)
     {

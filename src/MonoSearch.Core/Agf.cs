@@ -16,6 +16,8 @@ public sealed class Glass
     public required double[] Coef { get; init; }
     public double LambdaMin { get; set; } = 0;    // um, from the LD line
     public double LambdaMax { get; set; } = 100;
+    /// <summary>Thermal expansion, -30 to +70 C, 1e-6/K, from the ED line; NaN when the catalog gives none (or 0).</summary>
+    public double Cte { get; set; } = double.NaN;
 
     /// <summary>Other names in the same catalog with identical dispersion data (e.g. SUMITA K-LaSFn9 = LASFN9).</summary>
     public List<string> Aliases { get; } = new();
@@ -121,6 +123,9 @@ public static class AgfReader
                     break;
                 case "CD" when cur != null:
                     for (int i = 1; i < p.Length && i <= cur.Coef.Length; i++) cur.Coef[i - 1] = D(p[i]);
+                    break;
+                case "ED" when cur != null && p.Length >= 2:
+                    cur.Cte = D(p[1]) > 0 ? D(p[1]) : double.NaN;
                     break;
                 case "LD" when cur != null && p.Length >= 3:
                     cur.LambdaMin = D(p[1]);

@@ -94,6 +94,11 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <CheckBox Content="Include obsolete glasses" IsChecked="{Binding IncludeObsolete}"/>
+                    <Grid ColumnDefinitions="170,*" Margin="0,4,0,0">
+                        <CheckBox Content="Max CTE difference" IsChecked="{Binding LimitCte}"
+                                  ToolTip.Tip="Largest thermal-expansion difference (1e-6/K) between the cemented shell and ball. Stamenov et al. 2013 cite below 1.5 for cemented surfaces in outdoor optics. Glasses whose catalog gives no CTE are left out."/>
+                        <TextBox Grid.Column="1" Text="{Binding MaxCteDifference}" IsEnabled="{Binding LimitCte}"/>
+                    </Grid>
 
                     <TextBlock Classes="group" Text="Search"/>
                     <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto,Auto">
@@ -166,6 +171,7 @@
                         <DataGridTextColumn Header="Image R" Binding="{Binding ImageRadius, StringFormat=\{0:F3\}}" Width="80"/>
                         <DataGridTextColumn Header="(dPhi)^2" Binding="{Binding DPhi2, StringFormat=\{0:F5\}}" Width="85"/>
                         <DataGridTextColumn Header="RMS (waves)" Binding="{Binding Rms, StringFormat=\{0:F4\}}" Width="100"/>
+                        <DataGridTextColumn Header="dCTE" Binding="{Binding DeltaCte, StringFormat=\{0:F1\}}" Width="65"/>
                     </DataGrid.Columns>
                 </DataGrid>
                 <GridSplitter Grid.Row="1" ResizeDirection="Rows" Background="#DDDDDD"/>

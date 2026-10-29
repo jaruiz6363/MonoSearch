@@ -62,6 +62,12 @@ Back focus: `--min-bfl <mm>` (default 0) requires that much clearance from the r
 The r1 search is capped at f - min-bfl, so each pair's best design under the limit is found rather than its
 unconstrained best rejected, and the refocused back focus is checked exactly. The ranked CSV has a `bfl` column.
 
+Thermal expansion: `--max-dcte <1e-6/K>` (GUI: Max CTE difference; default off) keeps only pairs whose shell
+and ball CTEs (-30 to +70 C, from each catalog's ED line) differ by at most that much, since the two are cemented.
+Stamenov, Agurok and Ford, Appl. Opt. 52, 8287 (2013) cite below 1.5 for cemented surfaces in outdoor optics.
+Glasses whose catalog gives no CTE are left out while the limit is on (6 of the bundled usable glasses). The
+ranked CSV has `outer_cte`, `inner_cte` and `dcte` columns, and the GUI table a dCTE column.
+
 Field of view: `--fov <deg>` (half field, default 60) sets the fields of the exported files (on axis, half and
 full field) and of the drawing. It does not change the ranking: every field sees the same lens about its own chief
 ray, and the flat stop at the centre only foreshortens the pupil (by cos of the field angle in the meridional section).
@@ -113,6 +119,10 @@ missing there.
 - The paper's Table 2 pair N-KZFS2 / S-FPL53 comes out with r1 34.840, r2 16.983 (paper 34.913, 16.958); rank 14
   with the default catalogs. The new rank 1 (LAF50 / K-PFK90) gives MTF 0.297 at 300 lp/mm in OpticStudio against
   0.287 for the paper's pair (470/550/650 nm).
+- With 486 / 587.6 / 656 nm the new rank 1-3 are M-LAF81, L-LAM69 and D-LAF79 over a K-GFK68 ball, the family the
+  2013 paper (Appl. Opt. 52, 8287, Fig. 4(b)) reports as better than the 2012 one. Their shell/ball CTE difference is
+  about 4e-6/K; with `--max-dcte 1.5` the best pairs become the same shells over K-PSK400, with (dPhi)^2 0.0012
+  against 0.0008.
 - The fabricated lens (S-NBH8 / fused silica, asymmetric shells 31.8 and 33.378, ball 18.187) is matched by the
   symmetric optimum for that pair: r1 32.53, r2 18.22.
 

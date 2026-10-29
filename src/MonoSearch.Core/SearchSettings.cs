@@ -42,6 +42,10 @@ public sealed class SearchSettings
     /// is the same about every chief ray, so it does not change the ranking.</summary>
     public double HalfFieldAngle { get; set; } = 60.0;
 
+    /// <summary>Largest thermal-expansion difference allowed between the cemented shell and ball, 1e-6/K; null = no limit.
+    /// Stamenov et al. 2013 cite below 1.5 for cemented surfaces in outdoor optics. Glasses without a CTE are left out.</summary>
+    public double? MaxCteDifference { get; set; }
+
     public List<string> Catalogs { get; set; } = new() { "SCHOTT", "OHARA", "HOYA", "SUMITA", "CDGM", "MISC" };
     public bool IncludeObsolete { get; set; }
 
@@ -93,6 +97,7 @@ public sealed class SearchSettings
         if (MinBackFocus < 0 || MinBackFocus >= 0.85 * FocalLength)
             throw new ArgumentException($"Minimum back focus must be from 0 to below {0.85 * FocalLength:G4} mm (0.85 f).");
         if (!(HalfFieldAngle >= 0 && HalfFieldAngle < 90)) throw new ArgumentException("Half field of view must be from 0 to below 90 degrees.");
+        if (MaxCteDifference is { } dc && !(dc > 0)) throw new ArgumentException("The CTE difference limit must be positive (1e-6/K).");
         if (DesignWavelength is { } dw && !(dw > 0)) throw new ArgumentException("Design wavelength must be positive.");
         if (Mode is not ("paper" or "direct")) throw new ArgumentException("Mode must be paper or direct.");
         if (Focus is not ("poly" or "eq36")) throw new ArgumentException("Focus must be poly or eq36.");

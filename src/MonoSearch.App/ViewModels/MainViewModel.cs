@@ -36,6 +36,9 @@ public sealed class ResultRow
     public double ImageRadius => Candidate.ImageRadius;
     public double DPhi2 => Candidate.E.DPhi2;
     public double Rms => Candidate.RmsWaves;
+    public double OuterCte => Candidate.Outer.Cte;
+    public double InnerCte => Candidate.Inner.Cte;
+    public double DeltaCte => Candidate.DeltaCte;
 }
 
 /// <summary>
@@ -62,6 +65,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private double _fNumber;
     [ObservableProperty] private double _minBackFocus;
     [ObservableProperty] private double _halfFieldAngle;
+    [ObservableProperty] private bool _limitCte;
+    [ObservableProperty] private double _maxCteDifference;
     [ObservableProperty] private int _primaryWavelength;
     [ObservableProperty] private bool _autoDesignWavelength;
     [ObservableProperty] private double _designWavelength;
@@ -82,7 +87,7 @@ public partial class MainViewModel : ObservableObject
 
     private static readonly HashSet<string> SettingProperties = new()
     {
-        nameof(FocalLength), nameof(FNumber), nameof(MinBackFocus), nameof(HalfFieldAngle), nameof(PrimaryWavelength), nameof(AutoDesignWavelength),
+        nameof(FocalLength), nameof(FNumber), nameof(MinBackFocus), nameof(HalfFieldAngle), nameof(LimitCte), nameof(MaxCteDifference), nameof(PrimaryWavelength), nameof(AutoDesignWavelength),
         nameof(DesignWavelength), nameof(IncludeObsolete), nameof(ModeIndex), nameof(FocusIndex), nameof(ScanPoints),
         nameof(KeepTop), nameof(ExportCount), nameof(OutputFolder), nameof(OptilandInstall), nameof(ZemaxGlasscat),
     };
@@ -185,6 +190,8 @@ public partial class MainViewModel : ObservableObject
                     IsSelected = s.Catalogs.Contains(c, StringComparer.OrdinalIgnoreCase),
                 });
             IncludeObsolete = s.IncludeObsolete;
+            LimitCte = s.MaxCteDifference is not null;
+            MaxCteDifference = s.MaxCteDifference ?? 1.5;
             ModeIndex = s.Mode == "direct" ? 1 : 0;
             FocusIndex = s.Focus == "eq36" ? 1 : 0;
             ScanPoints = s.ScanPoints;
@@ -212,6 +219,7 @@ public partial class MainViewModel : ObservableObject
         DesignWavelength = AutoDesignWavelength ? null : DesignWavelength,
         Catalogs = Catalogs.Where(c => c.IsSelected).Select(c => c.Name).ToList(),
         IncludeObsolete = IncludeObsolete,
+        MaxCteDifference = LimitCte ? MaxCteDifference : null,
         Mode = ModeIndex == 1 ? "direct" : "paper",
         Focus = FocusIndex == 1 ? "eq36" : "poly",
         ScanPoints = ScanPoints,
@@ -320,7 +328,10 @@ public partial class MainViewModel : ObservableObject
             foreach (var c in r.Ranked) Results.Add(new ResultRow { Candidate = c });
             SelectedResult = Results.FirstOrDefault();
             Progress = 100;
-            SummaryText = $"{r.GlassesUsable} usable glasses of {r.GlassesRead}, {r.Pairs:N0} pairs, {r.ValidDesigns:N0} valid designs, "
+            SummaryText = $"{r.GlassesUsable} usable glasses of {r.GlassesRead}"
+                          + (r.GlassesWithoutCte > 0 ? $" ({r.GlassesWithoutCte} without a CTE left out)" : "")
+                          + (r.Settings.MaxCteDifference is { } dc ? $", shell/ball CTE difference <= {dc}" : "")
+                          + $", {r.Pairs:N0} pairs, {r.ValidDesigns:N0} valid designs, "
                           + $"{r.Elapsed.TotalSeconds:F1} s. Design wavelength {r.Spec.DesignLambda} um"
                           + (r.Spec.MinBfl > 0 ? $"; r1 <= {r.Spec.R1Max:F3} mm for back focus >= {r.Spec.MinBfl} mm." : ".");
             StatusText = r.Ranked.Count == 0 ? "No valid design. Relax the back focus or widen the catalogs."
