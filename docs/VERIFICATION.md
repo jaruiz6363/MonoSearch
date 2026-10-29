@@ -152,6 +152,7 @@ requires every combination to start.
 | ZMX after the move to AberrationCalculator's writer | Old and new files of 2GS ranks 1–3 and 4GA-8 rank 1 opened in OpticStudio (0.2.3) | Same radii, thicknesses, glasses, catalogs, aperture, fields and wavelengths. EFL identical: 11.99663, 11.99692, 11.99706 and 12.00552 mm. Rank 2 (HOYA M-TAFD405, an alias case) gave the same MTF curves at every field, 0–200 lp/mm. |
 | Optiland `.json` | Ranks 1 and 3 loaded in Optiland 0.6 | EFL 11.9966 / 11.9971 mm, as in OpticStudio; per-wavelength RMS wavefront within about 0.007 waves of OpticStudio's |
 | OSLO `.len`, Optalix `.otx`, LensHH-LT `.lhlt` | Read back with AberrationCalculator's readers (`MonoSearch.exe readback`) | Same prescription and EFL as the ZMX and Optiland files |
+| LensHH-LT `.lhlt` | A few exported files opened in LensHH-LT by the author | What was looked at matched OpticStudio. Which files and which analyses were compared was not recorded. |
 
 ---
 
@@ -186,7 +187,9 @@ GUI has not been run yet.
 
 ## Not yet checked
 
-- The OSLO, Optalix and LensHH-LT files have not been opened in OSLO, Optalix or LensHH-LT themselves.
+- The OSLO and Optalix files have not been opened in OSLO or Optalix themselves.
+- LensHH-LT has had a few files opened, without a recorded comparison (above). A check like the OpticStudio one,
+  with named designs, EFL and MTF, has not been made.
 - MISC glasses (Corning HPFS 7980) are not in LensHH-LT's catalogs.
 - The 4GA-8 full-search winners have not been compared with the paper's family I in OpticStudio.
 - The 0.018 mm r1 offset against the 2012 paper is not explained.
