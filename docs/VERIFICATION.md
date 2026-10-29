@@ -149,6 +149,7 @@ requires every combination to start.
 | Format | Checked | Result |
 |---|---|---|
 | ZMX | Opened in OpticStudio, 2GS ranks 1, 3, 8 and 9 | EFL 11.997 mm and the MTF given above |
+| ZMX after the move to AberrationCalculator's writer | Old and new files of 2GS ranks 1–3 and 4GA-8 rank 1 opened in OpticStudio (0.2.3) | Same radii, thicknesses, glasses, catalogs, aperture, fields and wavelengths. EFL identical: 11.99663, 11.99692, 11.99706 and 12.00552 mm. Rank 2 (HOYA M-TAFD405, an alias case) gave the same MTF curves at every field, 0–200 lp/mm. |
 | Optiland `.json` | Ranks 1 and 3 loaded in Optiland 0.6 | EFL 11.9966 / 11.9971 mm, as in OpticStudio; per-wavelength RMS wavefront within about 0.007 waves of OpticStudio's |
 | OSLO `.len`, Optalix `.otx`, LensHH-LT `.lhlt` | Read back with AberrationCalculator's readers (`MonoSearch.exe readback`) | Same prescription and EFL as the ZMX and Optiland files |
 

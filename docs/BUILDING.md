@@ -29,14 +29,10 @@ Nothing else needs fetching. AberrationCalculator is part of this repository: it
 `external/AberrationCalculator` (see below). There are no machine-specific paths, and a plain clone builds as
 it is.
 
-The five export formats are written as follows:
-
-| Format | Written by |
-|---|---|
-| ZEMAX `.zmx` | MonoSearch's own writer, `src/MonoSearch.Core/ZmxWriter.cs`, checked in OpticStudio |
-| OSLO `.len`, Optalix `.otx`, Optiland `.json`, LensHH-LT `.lhlt` | AberrationCalculator's IO library |
-
-`MonoSearch.exe readback` reads all five back, the ZMX included, with AberrationCalculator's readers.
+AberrationCalculator's IO library writes all five export formats: ZEMAX `.zmx`, OSLO `.len`, Optalix `.otx`,
+Optiland `.json` and LensHH-LT `.lhlt`. MonoSearch builds one AberrationCalculator lens model per design and
+hands it to each writer. For the ZMX it first renames the glasses to the names your OpticStudio Glasscat folder
+uses. `MonoSearch.exe readback` reads all five back with AberrationCalculator's readers.
 
 ## Get the source
 

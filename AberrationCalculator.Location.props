@@ -1,7 +1,7 @@
 <Project>
   <!-- AberrationCalculator is this repository's subtree in external/AberrationCalculator (see docs/BUILDING.md).
-       Its IO library writes the OSLO, Optalix, Optiland and LHLT files (MonoSearch.Core writes the ZEMAX .zmx
-       itself) and reads all five back. A project outside this repository that
+       Its IO library writes and reads all five export formats (ZEMAX, OSLO, Optalix, Optiland, LHLT). A project
+       outside this repository that
        references MonoSearch.Core imports this file, or sets AberrationCalculatorDir itself. -->
   <PropertyGroup>
     <AberrationCalculatorDir>$(MSBuildThisFileDirectory)external/AberrationCalculator/</AberrationCalculatorDir>

@@ -74,7 +74,7 @@ MonoSearch reads from each AGF:
 
 | Format | Program | Written by |
 |---|---|---|
-| `.zmx` | Ansys Zemax OpticStudio | MonoSearch's own writer |
+| `.zmx` | Ansys Zemax OpticStudio | AberrationCalculator.IO, with glass names from the user's OpticStudio Glasscat folder |
 | `.len` | OSLO (Lambda Research) | AberrationCalculator.IO |
 | `.otx` | Optalix | AberrationCalculator.IO |
 | `.json` | Optiland (open-source Python lens design) | AberrationCalculator.IO |
@@ -91,7 +91,7 @@ catalog.
 | Avalonia (with Avalonia.Desktop, Themes.Fluent, Controls.DataGrid) | 11.2.3 | GUI |
 | CommunityToolkit.Mvvm | 8.4.0 | View-model bindings |
 | MessageBox.Avalonia | 3.3.1.1 | Message boxes |
-| AberrationCalculator.IO | git subtree in `external/AberrationCalculator` | OSLO, Optalix, Optiland and LHLT writers; readers for all five formats, ZMX included (the ZMX writer is MonoSearch's own) |
+| AberrationCalculator.IO | git subtree in `external/AberrationCalculator` | Writers and readers for all five export formats |
 | Inno Setup | 6 | Windows installer (release repository) |
 
 **Windows power throttling.** Both programs call `SetProcessInformation` with `ProcessPowerThrottling`

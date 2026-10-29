@@ -58,8 +58,7 @@ src\MonoSearch.Core\   searches, ray traces, catalogs, settings, exporters
 src\MonoSearch\        command line (MonoSearch.exe)
 src\MonoSearch.App\    GUI (MonoSearchApp.exe, Avalonia)
 docs\                  the documents above
-external\AberrationCalculator\   git subtree: lens model and the OSLO, Optalix, Optiland and LHLT writers
-                       (ZEMAX .zmx is written by MonoSearch.Core's own ZmxWriter)
+external\AberrationCalculator\   git subtree: lens model, and the writers and readers of all five export formats
 ```
 
 To build it yourself, open `MonoSearch.sln` in Visual Studio 2022, or run

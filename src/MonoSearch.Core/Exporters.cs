@@ -6,8 +6,9 @@ using AcGlassCatalog = AberrationCalculator.Core.Glass.GlassCatalog;
 namespace MonoSearch;
 
 /// <summary>
-/// Writes one design in several lens formats. ZMX uses MonoSearch's own writer, checked in OpticStudio;
-/// OSLO, Optalix, Optiland and LHLT use AberrationCalculator.IO's writers on an AberrationCalculator lens model.
+/// Writes one design in several lens formats, all with AberrationCalculator.IO's writers on an AberrationCalculator
+/// lens model. The ZMX gets its own copy of the model, with the catalog and glass names the user's OpticStudio
+/// resolves (see <see cref="ZemaxNamed"/>).
 /// </summary>
 public static class Exporters
 {
@@ -29,7 +30,7 @@ public static class Exporters
                 switch (fmt)
                 {
                     case "zmx":
-                        warnings.AddRange(ZmxWriter.Write(path, lens, zc));
+                        ZmxWriter.Write(ZemaxNamed(lens, acGlass, zc, warnings), path);
                         break;
                     case "len":
                         OsloWriter.Write(system, path, acGlass);
@@ -99,6 +100,35 @@ public static class Exporters
             bool last = k == lens.Surfaces.Count - 1;
             Add(s.Comment, s.Radius == 0 ? double.PositiveInfinity : s.Radius, last ? 0.0 : s.Thickness, s.Glass, s.Stop);
         }
+        return sys;
+    }
+
+    /// <summary>The lens model for the ZMX file: each glass under the catalog and name the user's OpticStudio Glasscat
+    /// folder (read only) holds it by, which can differ from the bundled vendor file's (an older file, a renamed
+    /// catalog such as HOYA20260126, or an alias). Without that folder the bundled names are kept.</summary>
+    private static OpticalSystem ZemaxNamed(MonoLens lens, AcGlassCatalog acGlass, ZemaxCatalogs? zc, List<string> warnings)
+    {
+        var sys = Build(lens, acGlass, new List<string>());   // its catalog-order warnings are reported once, by Write
+        if (zc is null) return sys;
+        var names = new Dictionary<Glass, (string Catalog, string Name)>();
+        foreach (var g in lens.Glasses.Distinct())
+        {
+            var r = zc.Resolve(g);
+            if (r is null)
+            {
+                warnings.Add($"{g.Id} is not in the OpticStudio catalogs in {zc.Folder}; copy {Path.Combine("catalogs", g.Catalog + ".AGF")} there to open this file");
+                names[g] = (g.Catalog, g.Name);
+                continue;
+            }
+            if (!r.Value.Exact) warnings.Add($"{g.Id} -> {r.Value.Catalog}:{r.Value.Name} has the same nd but different dispersion data");
+            names[g] = (r.Value.Catalog, r.Value.Name);
+        }
+        // Surface k + 1 of the model is surface k of the lens (surface 0 is the object).
+        for (int k = 0; k < lens.Surfaces.Count; k++)
+            if (lens.Surfaces[k].Glass is { } g)
+                (sys.Surfaces[k + 1].CatalogName, sys.Surfaces[k + 1].Material) = names[g];
+        sys.GlassCatalogs.Clear();
+        sys.GlassCatalogs.AddRange(names.Values.Select(v => v.Catalog).Distinct());
         return sys;
     }
 
