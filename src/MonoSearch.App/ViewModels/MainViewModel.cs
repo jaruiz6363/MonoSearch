@@ -378,7 +378,7 @@ public partial class MainViewModel : ObservableObject
 
         ClearResults();
         IsRunning = true;
-        StatusText = "Searching...";
+        StatusText = SummaryText = settings.Architecture == "4GA-8" ? "4GA-8: starting..." : "2GS: searching every glass pair (a few seconds)...";
         _cts = new CancellationTokenSource();
         var progress = new Progress<double>(p => Progress = Math.Max(Progress, p * 100));
         try
@@ -395,10 +395,16 @@ public partial class MainViewModel : ObservableObject
                           + $", {r.Pairs:N0} pairs, {r.ValidDesigns:N0} valid designs, "
                           + $"{r.Elapsed.TotalSeconds:F1} s. Design wavelength {r.Spec.DesignLambda} um"
                           + (r.Spec.MinBfl > 0 ? $"; r1 <= {r.Spec.R1Max:F3} mm for back focus >= {r.Spec.MinBfl} mm." : ".");
+            if (r.Stopped)
+                SummaryText = $"Stopped after {r.Fraction:P0} of the outer glasses: the table ranks the pairs searched so far. " + SummaryText;
             StatusText = r.Ranked.Count == 0 ? "No valid design. Relax the back focus or widen the catalogs."
-                : $"Done: best {r.Ranked[0].Outer.Label} / {r.Ranked[0].Inner.Label}, RMS {r.Ranked[0].RmsWaves:F4} waves.";
+                : $"{(r.Stopped ? "Stopped" : "Done")}: best {r.Ranked[0].Outer.Label} / {r.Ranked[0].Inner.Label}, RMS {r.Ranked[0].RmsWaves:F4} waves.";
         }
-        catch (OperationCanceledException) { StatusText = "Cancelled."; Progress = 0; }
+        catch (OperationCanceledException ex)
+        {
+            StatusText = SummaryText = ex.Message.StartsWith("Stopped") ? ex.Message + " Nothing to show." : "Stopped before any result. Nothing to show.";
+            Progress = 0;
+        }
         catch (Exception ex) when (ex is ArgumentException or FileNotFoundException or IOException) { StatusText = ex.Message; }
         catch (Exception ex)
         {
@@ -417,8 +423,9 @@ public partial class MainViewModel : ObservableObject
 
     private async Task Run4(SearchSettings settings, IProgress<double> progress, CancellationToken cancel)
     {
-        StatusText = "4GA-8: " + (settings.CoreGlasses.Count > 0 ? "screening..." : "2GS search for the core...");
-        IProgress<string> log = new Progress<string>(m => StatusText = "4GA-8: " + m);
+        StatusText = SummaryText = "4GA-8: " + (settings.CoreGlasses.Count > 0 ? "preparing..." : "finding the core with a 2GS search...");
+        // What the search is doing, shown above the table and in the status bar while it runs.
+        IProgress<string> log = new Progress<string>(m => { if (IsRunning) StatusText = SummaryText = "4GA-8: " + m; });
         var r = await Task.Run(() => Ga8Search.Run(settings, CatalogFolder, progress, cancel, log.Report));
         LastResult4 = r;
         foreach (var c in r.Ranked) Results4.Add(new Ga8Row { Candidate = c });
@@ -431,8 +438,11 @@ public partial class MainViewModel : ObservableObject
                       + (r.Unstartable > 0 ? $" ({r.Unstartable:N0} could not be started)" : "")
                       + $", {r.Elapsed.TotalMinutes:F1} min. "
                       + string.Join(" ", r.Baselines.Select(b => $"Best 2GS with core {b.Core.Id}: {b.Shell.Id}, RMS {b.RmsWaves:F4} waves."));
+        if (r.Stopped)
+            SummaryText = $"Stopped after {(double)r.Screened / r.Total:P0} of the screening ({r.Screened:N0} of {r.Total:N0} combinations): "
+                          + "the table holds the best of those, refined and ranked. Run again for the full search. " + SummaryText;
         StatusText = r.Ranked.Count == 0 ? "No valid 4GA-8 design. Relax the back focus, the CTE limit or widen the catalogs."
-            : $"Done: best {r.Ranked[0].Glasses}, RMS {r.Ranked[0].RmsWaves:F4} waves.";
+            : $"{(r.Stopped ? "Stopped" : "Done")} after {r.Elapsed.TotalMinutes:F1} min: best {r.Ranked[0].Glasses}, RMS {r.Ranked[0].RmsWaves:F4} waves.";
     }
 
     /// <summary>Sets up a 4GA-8 search seeded with the ball glasses of the given 2GS designs (the paper's procedure).</summary>

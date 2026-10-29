@@ -22,7 +22,7 @@
             </MenuItem>
             <MenuItem Header="_Search">
                 <MenuItem Header="_Run" InputGesture="F5" Command="{Binding RunCommand}"/>
-                <MenuItem Header="_Cancel" Command="{Binding CancelCommand}"/>
+                <MenuItem Header="_Stop (keep results so far)" Command="{Binding CancelCommand}"/>
                 <Separator/>
                 <MenuItem Header="_Export Top N" Click="ExportTopClick" IsEnabled="{Binding CanExport}"/>
                 <MenuItem Header="Export _Selected" Click="ExportSelectedClick" IsEnabled="{Binding CanExport}"/>
@@ -163,7 +163,8 @@
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
                     <Button Content="Run" Command="{Binding RunCommand}" FontWeight="SemiBold" Width="90"
                             HorizontalContentAlignment="Center"/>
-                    <Button Content="Cancel" Command="{Binding CancelCommand}" Width="90" HorizontalContentAlignment="Center"/>
+                    <Button Content="Stop" Command="{Binding CancelCommand}" Width="90" HorizontalContentAlignment="Center"
+                            ToolTip.Tip="Stop the search and keep what it has found: the combinations screened so far are refined and ranked (a few seconds), and the table shows them."/>
                     <Button Content="Export Top N" Click="ExportTopClick" IsEnabled="{Binding CanExport}"/>
                     <Button Content="Export Selected" Click="ExportSelectedClick" IsEnabled="{Binding CanExport}"/>
                     <Button Content="Open Output Folder" Click="OpenFolderClick"/>

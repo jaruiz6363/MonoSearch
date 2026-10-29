@@ -22,8 +22,12 @@ wavefront deformation (Eq. 38). Pairs run in parallel (`Parallel.For`); indices 
 `src\MonoSearch.App\bin\Release\net9.0\MonoSearchApp.exe`. Settings on the left (lens, wavelengths and weights,
 catalogs, search, export), results on the right. File > New / Open / Save / Save As keep the settings in a
 `.monosearch` file (JSON); the title shows the file and `*` when it has unsaved changes, and New, Open and
-closing ask before discarding them. Run (F5) searches in the background with a progress bar and Cancel; the
-table sorts by any column. Below the table the selected design is drawn: a real meridional trace at the primary
+closing ask before discarding them. Run (F5) searches in the background with a progress bar; above the table the
+window says what the search is doing (for 4GA-8: the stage, combinations screened, time elapsed and left, and the
+best C so far). Stop ends the search and keeps what it has found: the combinations screened so far are refined and
+ranked (a few seconds) and the summary says how much was screened. The table sorts by any column. Both programs opt
+out of Windows 11 power throttling (EcoQoS), so a search keeps full speed when the window loses focus or the command
+line runs in a background terminal. Below the table the selected design is drawn: a real meridional trace at the primary
 wavelength, 7 rays per field filling the stop at the centre (as OpticStudio's real ray aiming), each surface as wide
 as its rays need, the stop, and the concentric image; the half field of view can be changed without a new run.
 Export Top N writes the ranked CSV and the top N designs; Export Selected writes the

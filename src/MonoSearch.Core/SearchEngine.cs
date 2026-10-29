@@ -27,6 +27,9 @@ public sealed class SearchResult
     public int GlassesWithoutCte { get; init; }
     public long Pairs { get; init; }
     public long ValidDesigns { get; init; }
+    /// <summary>Stopped by the user: the ranking covers <see cref="Fraction"/> of the outer glasses.</summary>
+    public bool Stopped { get; init; }
+    public double Fraction { get; init; } = 1;
     public TimeSpan Elapsed { get; init; }
     public string Tag => $"f{Spec.F.ToString(CultureInfo.InvariantCulture)}_F{Spec.FNumber.ToString(CultureInfo.InvariantCulture)}_{Settings.Mode}";
 }
@@ -91,8 +94,10 @@ public static class SearchEngine
         var perOuter = new List<(int J, Eval E)>[N];
         long done = 0, pairs = 0;
         var sw = Stopwatch.StartNew();
-        Parallel.For(0, N, new ParallelOptions { CancellationToken = cancel }, i =>
+        // Stop (the cancellation token) ends the loop; the outer glasses done so far are still ranked.
+        Parallel.For(0, N, (i, state) =>
         {
+            if (cancel.IsCancellationRequested) { state.Stop(); return; }
             var rows = new List<(int, Eval)>();
             long tried = 0;
             for (int j = 0; j < N; j++)
@@ -111,7 +116,9 @@ public static class SearchEngine
         });
 
         var all3 = new List<(int I, int J, Eval E)>();
-        for (int i = 0; i < N; i++) foreach (var (j, e) in perOuter[i]) all3.Add((i, j, e));
+        for (int i = 0; i < N; i++) if (perOuter[i] is { } rows) foreach (var (j, e) in rows) all3.Add((i, j, e));
+        bool stopped = cancel.IsCancellationRequested;
+        if (stopped && all3.Count == 0) throw new OperationCanceledException("Stopped before any design was found.");
         var top = all3.OrderBy(r => r.E.DPhi2).Take(Math.Max(1, settings.KeepTop))
             .Select((r, k) => new Candidate(k + 1, usable[r.I], usable[r.J], r.E, sp)).ToList();
 
@@ -119,6 +126,7 @@ public static class SearchEngine
         {
             Spec = sp, Settings = settings.Clone(), Ranked = top, GlassesRead = all.Count, GlassesUsable = N,
             GlassesWithoutCte = noCte, Pairs = pairs, ValidDesigns = all3.Count, Elapsed = sw.Elapsed,
+            Stopped = stopped, Fraction = (double)done / Math.Max(1, N),
         };
     }
 

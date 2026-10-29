@@ -3,6 +3,8 @@ using MonoSearch;
 
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+// A run in a background terminal is never the foreground app; without this Windows 11 throttles it throughout.
+WindowsPerformance.DisablePowerThrottling();
 
 var opt = Options.Parse(args);
 if (opt.Command is null || opt.Has("help"))

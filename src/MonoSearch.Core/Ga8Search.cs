@@ -35,6 +35,9 @@ public sealed class Ga8Result
     public long Screened { get; init; }
     /// <summary>Combinations from which no starting point traces (every seed, also scaled to f, sends a ray astray).</summary>
     public long Unstartable { get; init; }
+    /// <summary>Stopped by the user: the results come from the combinations screened so far (<see cref="Screened"/> of <see cref="Total"/>).</summary>
+    public bool Stopped { get; init; }
+    public long Total { get; init; }
     public TimeSpan Elapsed { get; init; }
     public string Tag => string.Create(CultureInfo.InvariantCulture, $"f{Spec.F}_F{Spec.FNumber}_4GA-8");
 }
@@ -74,6 +77,7 @@ public static class Ga8Search
         var all = SearchEngine.LoadCatalogs(catDir, settings.Catalogs);
         var usable = SearchEngine.Usable(settings, sp, all, out int noCte);
         var cores = ResolveCores(settings, catDir, usable, cancel, log);
+        if (cancel.IsCancellationRequested) throw new OperationCanceledException("Stopped while finding the core, before any 4GA-8 design.");
         double? maxDcte = settings.MaxCteDifference;
         double minGlass = MinGlassFraction * sp.F, minGap = MinGapFraction * sp.F;
         var index = usable.ToDictionary(g => g, g => sp.Lambda.Select(g.Index).ToArray());
@@ -95,45 +99,74 @@ public static class Ga8Search
                     + string.Join("; ", plans.Select(p => $"{p.Core.Name}: {p.Shells.Count} shell x {p.Shells.Count} rear x {p.Menisci.Count} meniscus groups"))
                     + $" = {total:N0} combinations");
 
+        // Stop (the cancellation token) ends the screening; what has been screened is still refined and ranked.
+        var screenClock = Stopwatch.StartNew();
+        long lastReport = 0;
+        double bestSoFar = double.PositiveInfinity;
+        object bestGate = new();
+        bool stopped = false;
+
         var designs = new List<(Glass F, Glass K, Glass R, Glass M, Ga8Radii Radii, double C, Group G1, Group G3, Group G4)>();
-        foreach (var plan in plans)
+        for (int pi = 0; pi < plans.Count && !stopped; pi++)
         {
+            var plan = plans[pi];
             var core = plan.Core;
             var shells = plan.Shells; var menisci = plan.Menisci;
             Ga8Problem Problem(Glass f, Glass r, Glass m) => new(sp, new[] { index[f], index[core], index[r], index[m] }, minGlass, minGap);
             var seeds = Ga8Problem.Seeds(sp.F).ToArray();
+            string coreLabel = cores.Count > 1 ? $"core {core.Name} ({pi + 1} of {cores.Count})" : $"core {core.Name}";
+
+            void ScreenStatus()
+            {
+                long now = screenClock.ElapsedMilliseconds, last = Interlocked.Read(ref lastReport);
+                if (now - last < 1000 || Interlocked.CompareExchange(ref lastReport, now, last) != last) return;
+                long d = Interlocked.Read(ref done);
+                double frac = (double)d / total;
+                string left = frac > 0.01 ? $", about {Clock(TimeSpan.FromSeconds(now / 1000.0 * (1 - frac) / frac))} left" : "";
+                string best = double.IsFinite(bestSoFar) ? $" Best C so far {bestSoFar:F5}." : "";
+                log?.Invoke($"Screening {coreLabel}: {d:N0} of {total:N0} combinations ({frac:P0}), "
+                            + $"{Clock(screenClock.Elapsed)} elapsed{left}.{best} Stop keeps what has been found.");
+            }
 
             // 1. Screen every combination of representatives.
             var best = new List<(int A, int B, int M, double C)>();
             object gate = new();
             int nPairs = shells.Count * shells.Count;
-            Parallel.For(0, nPairs, new ParallelOptions { CancellationToken = cancel },
+            long doneBefore = Interlocked.Read(ref done);
+            Parallel.For(0, nPairs, new ParallelOptions(),
                 () => new List<(int A, int B, int M, double C)>(),
-                (pair, _, local) =>
+                (pair, state, local) =>
                 {
+                    if (cancel.IsCancellationRequested) { state.Stop(); return local; }
                     int a = pair / shells.Count, b = pair % shells.Count;
                     // Abandon a combination still AbandonFactor x above this thread's RefineCount-th best after 5 iterations.
                     double cut = local.Count >= RefineCount ? AbandonFactor * local[RefineCount - 1].C : double.PositiveInfinity;
                     int noStart = 0;
+                    double lowest = double.PositiveInfinity;
                     for (int m = 0; m < menisci.Count; m++)
                     {
                         var prob = Problem(shells[a].Rep, shells[b].Rep, menisci[m].Rep);
                         if (prob.Start(seeds) is not { } start) { noStart++; continue; }
                         var (_, c) = prob.Optimise(start, ScreenIterations, cut);
-                        if (double.IsFinite(c)) local.Add((a, b, m, c));
+                        if (double.IsFinite(c)) { local.Add((a, b, m, c)); lowest = Math.Min(lowest, c); }
                     }
                     if (noStart > 0) Interlocked.Add(ref unstartable, noStart);
+                    if (lowest < bestSoFar) lock (bestGate) bestSoFar = Math.Min(bestSoFar, lowest);
                     if (local.Count > 2 * RefineCount) Trim(local, RefineCount);
                     long d = Interlocked.Add(ref done, menisci.Count);
                     if (progress != null && pair % 16 == 0) progress.Report(0.9 * d / total);
+                    ScreenStatus();
                     return local;
                 },
                 local => { lock (gate) { best.AddRange(local); Trim(best, RefineCount); } });
-            screened += (long)nPairs * menisci.Count;
+            screened += Interlocked.Read(ref done) - doneBefore;
+            stopped = cancel.IsCancellationRequested;
+            if (best.Count == 0) continue;
 
             // 2. Refine the best to convergence from every starting point and from the screening result.
+            log?.Invoke($"Refining the {best.Count} best combinations for {coreLabel}{(stopped ? " (stopped: those screened so far)" : "")}...");
             var refined = new (int A, int B, int M, Ga8Radii R, double C)[best.Count];
-            Parallel.For(0, best.Count, new ParallelOptions { CancellationToken = cancel }, k =>
+            Parallel.For(0, best.Count, k =>
             {
                 var (a, b, m, _) = best[k];
                 var prob = Problem(shells[a].Rep, shells[b].Rep, menisci[m].Rep);
@@ -150,8 +183,9 @@ public static class Ga8Search
             progress?.Report(0.9 * done / total);
 
             // 3. Expand the best families to their replacement glasses, starting from the family's radii.
+            log?.Invoke($"Trying replacement glasses on the {families.Count} best families for {coreLabel}...");
             var expanded = new List<(Glass, Glass, Glass, Glass, Ga8Radii, double, Group, Group, Group)>();
-            Parallel.ForEach(families, new ParallelOptions { CancellationToken = cancel }, fam =>
+            Parallel.ForEach(families, fam =>
             {
                 Group g1 = shells[fam.A], g3 = shells[fam.B], g4 = menisci[fam.M];
                 var combos = (from f in g1.Members from r in g3.Members from m in g4.Members select (f, r, m))
@@ -169,8 +203,10 @@ public static class Ga8Search
             });
             designs.AddRange(expanded.Select(e => (e.Item1, e.Item2, e.Item3, e.Item4, e.Item5, e.Item6, e.Item7, e.Item8, e.Item9)));
         }
+        if (designs.Count == 0 && stopped) throw new OperationCanceledException("Stopped before any combination was screened.");
 
         // Rank: refocused wavefront and back focus for each design, ordered by C; families numbered by their best member.
+        log?.Invoke("Ranking...");
         var scored = designs.AsParallel().Select(d =>
         {
             var prob = new Ga8Problem(sp, new[] { index[d.F], index[d.K], index[d.R], index[d.M] }, minGlass, minGap);
@@ -193,8 +229,11 @@ public static class Ga8Search
         {
             Spec = sp, Settings = settings.Clone(), Ranked = ranked, Baselines = cores.Select(c => Baseline(sp, c, usable)).ToList(),
             GlassesUsable = usable.Length, GlassesWithoutCte = noCte, Screened = screened, Unstartable = unstartable, Elapsed = sw.Elapsed,
+            Stopped = stopped, Total = total,
         };
     }
+
+    private static string Clock(TimeSpan t) => t.TotalHours >= 1 ? t.ToString(@"h\:mm\:ss") : t.ToString(@"m\:ss");
 
     private static void Trim(List<(int A, int B, int M, double C)> list, int keep)
     {
@@ -209,6 +248,7 @@ public static class Ga8Search
         if (settings.CoreGlasses.Count > 0)
             return settings.CoreGlasses.Select(id => Find(usable, id)
                 ?? throw new ArgumentException($"Core glass {id} is not among the usable glasses (catalogs, band, obsolete, CTE).")).ToList();
+        log?.Invoke("Finding the core: 2GS search with these settings...");
         var s2 = settings.Clone();
         s2.Architecture = "2GS";
         s2.KeepTop = Math.Max(200, settings.KeepTop);
