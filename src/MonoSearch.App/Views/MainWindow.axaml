@@ -10,6 +10,41 @@
         Width="1380" Height="880"
         WindowStartupLocation="CenterScreen">
 
+    <!-- The results tables have many columns: a smaller font and tighter padding let every heading and value fit
+         beside full glass names at the window's starting size. The theme's column header keeps 32 px beside every
+         heading for the sort arrow, so this one draws the arrow over the heading's right edge instead. -->
+    <Window.Styles>
+        <Style Selector="DataGrid.results DataGridCell">
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="DataGrid.results DataGridCell TextBlock">
+            <Setter Property="Margin" Value="6,0,4,0"/>
+        </Style>
+        <Style Selector="DataGrid.results DataGridColumnHeader">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="6,0,4,0"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid Background="{TemplateBinding Background}">
+                        <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                          HorizontalAlignment="Left"/>
+                        <TextBlock Name="SortIcon" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,1,3,0"
+                                   FontSize="8" Foreground="#666666"/>
+                        <Rectangle Width="1" HorizontalAlignment="Right" Fill="{TemplateBinding SeparatorBrush}"
+                                   IsVisible="{TemplateBinding AreSeparatorsVisible}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="DataGrid.results DataGridColumnHeader:sortascending /template/ TextBlock#SortIcon">
+            <Setter Property="Text" Value="▲"/>
+        </Style>
+        <Style Selector="DataGrid.results DataGridColumnHeader:sortdescending /template/ TextBlock#SortIcon">
+            <Setter Property="Text" Value="▼"/>
+        </Style>
+    </Window.Styles>
+
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
@@ -178,47 +213,47 @@
                 <TextBlock DockPanel.Dock="Top" Text="{Binding SummaryText}" Margin="0,8,0,6" FontSize="12"
                            TextWrapping="Wrap" Foreground="#444444"/>
                 <Grid RowDefinitions="*,5,1.2*">
-                <DataGrid x:Name="Results4Grid" ItemsSource="{Binding Results4}" SelectedItem="{Binding SelectedResult4}"
+                <DataGrid Classes="results" x:Name="Results4Grid" ItemsSource="{Binding Results4}" SelectedItem="{Binding SelectedResult4}"
                           AutoGenerateColumns="False" IsVisible="{Binding Shows4GA8}"
                           IsReadOnly="True" SelectionMode="Extended" CanUserSortColumns="True" CanUserResizeColumns="True"
                           GridLinesVisibility="Horizontal" BorderThickness="1" BorderBrush="#CCCCCC">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="#" Binding="{Binding Rank}" Width="50"/>
-                        <DataGridTextColumn Header="Fam" Binding="{Binding Family}" Width="50"/>
-                        <DataGridTextColumn Header="Front shell" Binding="{Binding Front}" Width="*"/>
-                        <DataGridTextColumn Header="Core" Binding="{Binding Core}" Width="*"/>
-                        <DataGridTextColumn Header="Rear shell" Binding="{Binding Rear}" Width="*"/>
-                        <DataGridTextColumn Header="Meniscus" Binding="{Binding Meniscus}" Width="*"/>
-                        <DataGridTextColumn Header="R1" Binding="{Binding R1, StringFormat=\{0:F3\}}" Width="62"/>
-                        <DataGridTextColumn Header="R2" Binding="{Binding R2, StringFormat=\{0:F3\}}" Width="62"/>
-                        <DataGridTextColumn Header="R4" Binding="{Binding R4, StringFormat=\{0:F3\}}" Width="62"/>
-                        <DataGridTextColumn Header="R5" Binding="{Binding R5, StringFormat=\{0:F3\}}" Width="62"/>
-                        <DataGridTextColumn Header="R6" Binding="{Binding R6, StringFormat=\{0:F3\}}" Width="62"/>
-                        <DataGridTextColumn Header="BFL" Binding="{Binding BackFocus, StringFormat=\{0:F2\}}" Width="58"/>
-                        <DataGridTextColumn Header="C" Binding="{Binding C, StringFormat=\{0:F5\}}" Width="75"/>
-                        <DataGridTextColumn Header="RMS (waves)" Binding="{Binding Rms, StringFormat=\{0:F4\}}" Width="95"/>
-                        <DataGridTextColumn Header="dCTE" Binding="{Binding DeltaCte, StringFormat=\{0:F1\}}" Width="58"/>
+                        <DataGridTextColumn Header="#" Binding="{Binding Rank}" Width="36"/>
+                        <DataGridTextColumn Header="Fam" Binding="{Binding Family}" Width="40"/>
+                        <DataGridTextColumn Header="Front shell" Binding="{Binding Front}" Width="*" MinWidth="100"/>
+                        <DataGridTextColumn Header="Core" Binding="{Binding Core}" Width="*" MinWidth="100"/>
+                        <DataGridTextColumn Header="Rear shell" Binding="{Binding Rear}" Width="*" MinWidth="100"/>
+                        <DataGridTextColumn Header="Meniscus" Binding="{Binding Meniscus}" Width="*" MinWidth="100"/>
+                        <DataGridTextColumn Header="R1" Binding="{Binding R1, StringFormat=\{0:F3\}}" Width="52"/>
+                        <DataGridTextColumn Header="R2" Binding="{Binding R2, StringFormat=\{0:F3\}}" Width="52"/>
+                        <DataGridTextColumn Header="R4" Binding="{Binding R4, StringFormat=\{0:F3\}}" Width="52"/>
+                        <DataGridTextColumn Header="R5" Binding="{Binding R5, StringFormat=\{0:F3\}}" Width="52"/>
+                        <DataGridTextColumn Header="R6" Binding="{Binding R6, StringFormat=\{0:F3\}}" Width="52"/>
+                        <DataGridTextColumn Header="BFL" Binding="{Binding BackFocus, StringFormat=\{0:F2\}}" Width="54"/>
+                        <DataGridTextColumn Header="C" Binding="{Binding C, StringFormat=\{0:F5\}}" Width="62"/>
+                        <DataGridTextColumn Header="RMS (waves)" Binding="{Binding Rms, StringFormat=\{0:F4\}}" Width="82"/>
+                        <DataGridTextColumn Header="dCTE" Binding="{Binding DeltaCte, StringFormat=\{0:F1\}}" Width="46"/>
                     </DataGrid.Columns>
                 </DataGrid>
-                <DataGrid x:Name="ResultsGrid" ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResult}" AutoGenerateColumns="False"
+                <DataGrid Classes="results" x:Name="ResultsGrid" ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResult}" AutoGenerateColumns="False"
                           IsVisible="{Binding !Shows4GA8}"
                           IsReadOnly="True" SelectionMode="Extended" CanUserSortColumns="True" CanUserResizeColumns="True"
                           GridLinesVisibility="Horizontal" BorderThickness="1" BorderBrush="#CCCCCC">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="#" Binding="{Binding Rank}" Width="55"/>
-                        <DataGridTextColumn Header="Outer shell" Binding="{Binding Outer}" Width="2*"/>
-                        <DataGridTextColumn Header="nd" Binding="{Binding OuterNd, StringFormat=\{0:F4\}}" Width="70"/>
-                        <DataGridTextColumn Header="Vd" Binding="{Binding OuterVd, StringFormat=\{0:F1\}}" Width="55"/>
-                        <DataGridTextColumn Header="Inner ball" Binding="{Binding Inner}" Width="2*"/>
-                        <DataGridTextColumn Header="nd" Binding="{Binding InnerNd, StringFormat=\{0:F4\}}" Width="70"/>
-                        <DataGridTextColumn Header="Vd" Binding="{Binding InnerVd, StringFormat=\{0:F1\}}" Width="55"/>
-                        <DataGridTextColumn Header="r1" Binding="{Binding R1, StringFormat=\{0:F3\}}" Width="70"/>
-                        <DataGridTextColumn Header="r2" Binding="{Binding R2, StringFormat=\{0:F3\}}" Width="70"/>
-                        <DataGridTextColumn Header="BFL" Binding="{Binding BackFocus, StringFormat=\{0:F3\}}" Width="70"/>
-                        <DataGridTextColumn Header="Image R" Binding="{Binding ImageRadius, StringFormat=\{0:F3\}}" Width="80"/>
-                        <DataGridTextColumn Header="(dPhi)^2" Binding="{Binding DPhi2, StringFormat=\{0:F5\}}" Width="85"/>
-                        <DataGridTextColumn Header="RMS (waves)" Binding="{Binding Rms, StringFormat=\{0:F4\}}" Width="100"/>
-                        <DataGridTextColumn Header="dCTE" Binding="{Binding DeltaCte, StringFormat=\{0:F1\}}" Width="65"/>
+                        <DataGridTextColumn Header="#" Binding="{Binding Rank}" Width="36"/>
+                        <DataGridTextColumn Header="Outer shell" Binding="{Binding Outer}" Width="2*" MinWidth="100"/>
+                        <DataGridTextColumn Header="nd" Binding="{Binding OuterNd, StringFormat=\{0:F4\}}" Width="52"/>
+                        <DataGridTextColumn Header="Vd" Binding="{Binding OuterVd, StringFormat=\{0:F1\}}" Width="42"/>
+                        <DataGridTextColumn Header="Inner ball" Binding="{Binding Inner}" Width="2*" MinWidth="100"/>
+                        <DataGridTextColumn Header="nd" Binding="{Binding InnerNd, StringFormat=\{0:F4\}}" Width="52"/>
+                        <DataGridTextColumn Header="Vd" Binding="{Binding InnerVd, StringFormat=\{0:F1\}}" Width="42"/>
+                        <DataGridTextColumn Header="r1" Binding="{Binding R1, StringFormat=\{0:F3\}}" Width="54"/>
+                        <DataGridTextColumn Header="r2" Binding="{Binding R2, StringFormat=\{0:F3\}}" Width="54"/>
+                        <DataGridTextColumn Header="BFL" Binding="{Binding BackFocus, StringFormat=\{0:F3\}}" Width="54"/>
+                        <DataGridTextColumn Header="Image R" Binding="{Binding ImageRadius, StringFormat=\{0:F3\}}" Width="62"/>
+                        <DataGridTextColumn Header="(dPhi)^2" Binding="{Binding DPhi2, StringFormat=\{0:F5\}}" Width="66"/>
+                        <DataGridTextColumn Header="RMS (waves)" Binding="{Binding Rms, StringFormat=\{0:F4\}}" Width="82"/>
+                        <DataGridTextColumn Header="dCTE" Binding="{Binding DeltaCte, StringFormat=\{0:F1\}}" Width="46"/>
                     </DataGrid.Columns>
                 </DataGrid>
                 <GridSplitter Grid.Row="1" ResizeDirection="Rows" Background="#DDDDDD"/>
