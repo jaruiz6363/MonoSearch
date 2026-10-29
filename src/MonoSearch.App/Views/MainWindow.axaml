@@ -1,0 +1,183 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MonoSearch.App.ViewModels"
+        xmlns:views="using:MonoSearch.App.Views"
+        x:Class="MonoSearch.App.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        x:CompileBindings="False"
+        Title="{Binding Title}"
+        Icon="/Assets/icon.ico"
+        Width="1380" Height="880"
+        WindowStartupLocation="CenterScreen">
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" InputGesture="Ctrl+N" Click="NewClick"/>
+                <MenuItem Header="_Open..." InputGesture="Ctrl+O" Click="OpenClick"/>
+                <MenuItem Header="_Save" InputGesture="Ctrl+S" Click="SaveClick"/>
+                <MenuItem Header="Save _As..." InputGesture="Ctrl+Shift+S" Click="SaveAsClick"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Click="ExitClick"/>
+            </MenuItem>
+            <MenuItem Header="_Search">
+                <MenuItem Header="_Run" InputGesture="F5" Command="{Binding RunCommand}"/>
+                <MenuItem Header="_Cancel" Command="{Binding CancelCommand}"/>
+                <Separator/>
+                <MenuItem Header="_Export Top N" Click="ExportTopClick" IsEnabled="{Binding CanExport}"/>
+                <MenuItem Header="Export _Selected" Click="ExportSelectedClick" IsEnabled="{Binding CanExport}"/>
+                <MenuItem Header="_Open Output Folder" Click="OpenFolderClick"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About" Click="AboutClick"/>
+            </MenuItem>
+        </Menu>
+
+        <Border DockPanel.Dock="Bottom" Background="#F0F0F0" Padding="8,4">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding StatusText}" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                <ProgressBar Grid.Column="1" Width="240" Minimum="0" Maximum="100" Value="{Binding Progress}" Margin="8,0,0,0"/>
+            </Grid>
+        </Border>
+
+        <Grid ColumnDefinitions="400,*">
+
+            <!-- Settings -->
+            <ScrollViewer Grid.Column="0" Background="#FAFAFA">
+                <StackPanel Margin="12,4,12,12">
+
+                    <TextBlock Classes="group" Text="Lens"/>
+                    <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <TextBlock Classes="label" Text="Focal length (mm)"/>
+                        <TextBox Grid.Column="1" Text="{Binding FocalLength}"/>
+                        <TextBlock Classes="label" Grid.Row="1" Text="F-number"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding FNumber}"/>
+                        <TextBlock Classes="label" Grid.Row="2" Text="Min back focus (mm)"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding MinBackFocus}"
+                                 ToolTip.Tip="Clearance from the rear shell vertex to the image. 0 = any image outside the lens."/>
+                        <TextBlock Classes="label" Grid.Row="3" Text="Half field of view (deg)"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding HalfFieldAngle}"
+                                 ToolTip.Tip="Fields of the exported files (0, half, full) and of the drawing. A monocentric lens is the same about every chief ray, so this does not change the ranking."/>
+                    </Grid>
+
+                    <TextBlock Classes="group" Text="Wavelengths (um) and weights"/>
+                    <DataGrid ItemsSource="{Binding Wavelengths}" SelectedItem="{Binding SelectedWavelength}"
+                              AutoGenerateColumns="False" Height="170" CanUserSortColumns="False"
+                              GridLinesVisibility="All" BorderThickness="1" BorderBrush="#CCCCCC">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Wavelength (um)" Binding="{Binding Micrometres}" Width="*"/>
+                            <DataGridTextColumn Header="Weight" Binding="{Binding Weight}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,4,0,0">
+                        <Button Content="Add" Command="{Binding AddWavelengthCommand}"/>
+                        <Button Content="Remove" Command="{Binding RemoveWavelengthCommand}"/>
+                        <Button Content="Sort" Command="{Binding SortWavelengthsCommand}"/>
+                    </StackPanel>
+                    <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto" Margin="0,6,0,0">
+                        <TextBlock Classes="label" Text="Primary (row number)"/>
+                        <TextBox Grid.Column="1" Text="{Binding PrimaryWavelength}"/>
+                        <CheckBox Grid.Row="1" Grid.ColumnSpan="2" Content="Automatic design wavelength"
+                                  IsChecked="{Binding AutoDesignWavelength}"
+                                  ToolTip.Tip="Sets the focal length (Eq. 9) and Q. Automatic: the d line when it lies inside the band, else the primary."/>
+                        <TextBlock Classes="label" Grid.Row="2" Text="Design wavelength (um)"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DesignWavelength}"
+                                 IsEnabled="{Binding !AutoDesignWavelength}"/>
+                    </Grid>
+
+                    <TextBlock Classes="group" Text="Glass catalogs"/>
+                    <ItemsControl ItemsSource="{Binding Catalogs}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding Description}" IsChecked="{Binding IsSelected}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <CheckBox Content="Include obsolete glasses" IsChecked="{Binding IncludeObsolete}"/>
+
+                    <TextBlock Classes="group" Text="Search"/>
+                    <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <TextBlock Classes="label" Text="r1 from"/>
+                        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                  ItemsSource="{x:Static vm:MainViewModel.ModeNames}" SelectedIndex="{Binding ModeIndex}"/>
+                        <TextBlock Classes="label" Grid.Row="1" Text="Refocus"/>
+                        <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"
+                                  ItemsSource="{x:Static vm:MainViewModel.FocusNames}" SelectedIndex="{Binding FocusIndex}"/>
+                        <TextBlock Classes="label" Grid.Row="2" Text="r1 scan points"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ScanPoints}"/>
+                        <TextBlock Classes="label" Grid.Row="3" Text="Keep top"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding KeepTop}"/>
+                    </Grid>
+
+                    <TextBlock Classes="group" Text="Export"/>
+                    <Grid ColumnDefinitions="170,*" RowDefinitions="Auto">
+                        <TextBlock Classes="label" Text="Export top N"/>
+                        <TextBox Grid.Column="1" Text="{Binding ExportCount}"/>
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding Formats}" Margin="0,4,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding Description}" IsChecked="{Binding IsSelected}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Classes="label" Text="Output folder" Margin="0,6,0,2"/>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Text="{Binding OutputFolder}"
+                                 ToolTip.Tip="A relative folder is taken from the settings file's folder, or Documents\MonoSearch before it is saved."/>
+                        <Button Grid.Column="1" Content="..." Margin="4,0,0,0" Click="BrowseOutputClick"/>
+                    </Grid>
+                    <CheckBox Content="Install Optiland glasses into ~/.optiland/catalogs" IsChecked="{Binding OptilandInstall}" Margin="0,6,0,0"/>
+                    <TextBlock Classes="label" Text="OpticStudio Glasscat folder (names only, read-only)" Margin="0,6,0,2"/>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Text="{Binding ZemaxGlasscat}" Watermark="Documents\Zemax\Glasscat"/>
+                        <Button Grid.Column="1" Content="..." Margin="4,0,0,0" Click="BrowseGlasscatClick"/>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Results -->
+            <DockPanel Grid.Column="1" Margin="10,8,10,8">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
+                    <Button Content="Run" Command="{Binding RunCommand}" FontWeight="SemiBold" Width="90"
+                            HorizontalContentAlignment="Center"/>
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" Width="90" HorizontalContentAlignment="Center"/>
+                    <Button Content="Export Top N" Click="ExportTopClick" IsEnabled="{Binding CanExport}"/>
+                    <Button Content="Export Selected" Click="ExportSelectedClick" IsEnabled="{Binding CanExport}"/>
+                    <Button Content="Open Output Folder" Click="OpenFolderClick"/>
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Top" Text="{Binding SummaryText}" Margin="0,8,0,6" FontSize="12"
+                           TextWrapping="Wrap" Foreground="#444444"/>
+                <Grid RowDefinitions="*,5,1.2*">
+                <DataGrid x:Name="ResultsGrid" ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResult}" AutoGenerateColumns="False"
+                          IsReadOnly="True" SelectionMode="Extended" CanUserSortColumns="True" CanUserResizeColumns="True"
+                          GridLinesVisibility="Horizontal" BorderThickness="1" BorderBrush="#CCCCCC">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="#" Binding="{Binding Rank}" Width="55"/>
+                        <DataGridTextColumn Header="Outer shell" Binding="{Binding Outer}" Width="2*"/>
+                        <DataGridTextColumn Header="nd" Binding="{Binding OuterNd, StringFormat=\{0:F4\}}" Width="70"/>
+                        <DataGridTextColumn Header="Vd" Binding="{Binding OuterVd, StringFormat=\{0:F1\}}" Width="55"/>
+                        <DataGridTextColumn Header="Inner ball" Binding="{Binding Inner}" Width="2*"/>
+                        <DataGridTextColumn Header="nd" Binding="{Binding InnerNd, StringFormat=\{0:F4\}}" Width="70"/>
+                        <DataGridTextColumn Header="Vd" Binding="{Binding InnerVd, StringFormat=\{0:F1\}}" Width="55"/>
+                        <DataGridTextColumn Header="r1" Binding="{Binding R1, StringFormat=\{0:F3\}}" Width="70"/>
+                        <DataGridTextColumn Header="r2" Binding="{Binding R2, StringFormat=\{0:F3\}}" Width="70"/>
+                        <DataGridTextColumn Header="BFL" Binding="{Binding BackFocus, StringFormat=\{0:F3\}}" Width="70"/>
+                        <DataGridTextColumn Header="Image R" Binding="{Binding ImageRadius, StringFormat=\{0:F3\}}" Width="80"/>
+                        <DataGridTextColumn Header="(dPhi)^2" Binding="{Binding DPhi2, StringFormat=\{0:F5\}}" Width="85"/>
+                        <DataGridTextColumn Header="RMS (waves)" Binding="{Binding Rms, StringFormat=\{0:F4\}}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <GridSplitter Grid.Row="1" ResizeDirection="Rows" Background="#DDDDDD"/>
+                <Border Grid.Row="2" BorderThickness="1" BorderBrush="#CCCCCC">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Bottom" Text="{Binding SelectedText}" FontSize="12" Margin="8,4"
+                                   TextWrapping="Wrap" Foreground="#444444"/>
+                        <views:LensView Layout="{Binding SelectedLayout}" ClipToBounds="True"/>
+                    </DockPanel>
+                </Border>
+                </Grid>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</Window>

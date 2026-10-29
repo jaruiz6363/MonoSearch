@@ -1,0 +1,47 @@
+CC ============================================================================
+CC MISC.AGF -- MonoSearch supplementary materials (vendor data only)
+CC ============================================================================
+CC Materials the monocentric search needs that are not in the bundled vendor
+CC catalogs (SCHOTT, OHARA, HOYA, SUMITA, CDGM). Every entry is taken from a
+CC vendor's own published data. No OpticStudio catalog content is included.
+CC
+CC Catalog version: 1.0  (2026-10-28)
+CC Maintainer:      Synapse Optics
+CC
+CC ----------------------------------------------------------------------------
+CC HPFS_7980  Corning HPFS 7980 fused silica (22 C)
+CC ----------------------------------------------------------------------------
+CC Source: Corning Specialty Materials Product Information Sheet
+CC         "HPFS 7979, 7980, 8655 Fused Silica", July 2015 (corning.com).
+CC         Three-term Sellmeier coefficients taken directly from the sheet;
+CC         max error 2.4e-6 against its 20 tabulated indices, 185-1129 nm.
+CC         Entry copied verbatim from the Synapse Optics CORNING_FS.AGF v1.1.
+CC
+CC F_SILICA is an alias of HPFS_7980 with identical data, so that designs
+CC naming the material generically (e.g. the AWARE2 objective in Stamenov,
+CC Agurok and Ford, Appl. Opt. 51, 7648 (2012)) resolve. MonoSearch merges
+CC same-data aliases into one search entry.
+CC ----------------------------------------------------------------------------
+NM HPFS_7980 2 0 1.458461 67.80 0 0 1
+GC Corning HPFS 7980 fused silica; Corning product information sheet, July 2015
+ED 0.520000 0.570000 2.200000 0.000000 0 0
+CD 0.683740494 0.004603528 0.420323613 0.013396886 0.585027480 64.493273200 0 0 0 0
+TD 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 22.000000
+OD -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000
+LD 0.184950 1.128950
+IT 0.184950 0.5000 25.000000
+IT 0.193000 0.7000 10.000000
+IT 0.214506 0.8500 10.000000
+IT 0.248000 0.9990 10.000000
+IT 0.365119 0.9999 10.000000
+IT 0.587725 0.9999 10.000000
+IT 1.014260 0.9999 10.000000
+IT 1.128950 0.9990 10.000000
+CC
+NM F_SILICA 2 0 1.458461 67.80 0 0 1
+GC Alias for HPFS_7980 (generic "fused silica")
+ED 0.520000 0.570000 2.200000 0.000000 0 0
+CD 0.683740494 0.004603528 0.420323613 0.013396886 0.585027480 64.493273200 0 0 0 0
+TD 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 22.000000
+OD -1.000000 -1.000000 -1.000000 -1.000000 -1.000000 -1.000000
+LD 0.184950 1.128950

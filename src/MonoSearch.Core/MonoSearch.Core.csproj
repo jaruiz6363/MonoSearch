@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MonoSearch</RootNamespace>
+    <!-- The AberrationCalculator working tree; a release build passes a clean clone with -p:AberrationCalculatorDir. -->
+    <AberrationCalculatorDir Condition="'$(AberrationCalculatorDir)' == ''">C:\GIT\AberrationCalculator</AberrationCalculatorDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- OSLO, Optalix, Optiland and LHLT writers, on AberrationCalculator's lens model. -->
+    <ProjectReference Include="$(AberrationCalculatorDir)\src\AberrationCalculator.IO\AberrationCalculator.IO.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Vendor glass catalogs, copied next to every program that references this library. -->
+    <None Include="..\..\catalogs\*.AGF" Link="catalogs\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
