@@ -203,8 +203,21 @@ build.
 3. **macOS GUI:** it must start and stay running after opening a `.monosearch` file through Launch Services. A
    screenshot is kept with the workflow run.
 
-The first full build of all three packages (0.2.3, MonoSearch a97fbc2, AberrationCalculator daa2066) passed
-every test above:
+The released 0.2.3 packages were built from MonoSearch 5a3c70d (AberrationCalculator daa2066) and passed every
+test above:
+
+- **Windows:** 2GS rank 1 S-LAH79 / K-LaSFn9 (r1 9.065, r2 3.791, back focus 2.919) with all six formats;
+  4GA-8 rank 1 LASF35 / K-LaSFn9 / TAFD30 / S-LAH79, C = 0.00059, RMS 0.0634 waves.
+- **Linux** (WSL Ubuntu 22.04): the AppImage's rank 1 line identical to the Windows one, all six formats
+  written.
+- **macOS** (GitHub-hosted Apple Silicon Mac, run 40958044449): the app signed ad hoc, "valid on disk" and
+  "satisfies its Designated Requirement" with 243 files sealed; `check` reads the same 1642 glasses; the rank 1
+  line is the Windows one character for character; the Optiland and OSLO files read back with EFL
+  11.99663 mm. Opening a `.monosearch` file through Launch Services gave the window title
+  "MonoSearch - smoke.monosearch". The final zip, unzipped again, still verified.
+
+The first full build of all three packages (0.2.3 before the results-table fix, MonoSearch a97fbc2) had passed
+the same tests:
 
 - **Windows:** 2GS rank 1 S-LAH79 / K-LaSFn9 with all six formats; 4GA-8 rank 1 LASF35 / K-LaSFn9 / TAFD30 /
   S-LAH79, C = 0.00059, RMS 0.0634 waves.
